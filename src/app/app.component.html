@@ -1,0 +1,70 @@
+<div id="app">
+  <div class="ui four column grid">
+
+    <div class="row">
+      <svg-icon class="logo" src="assets/images/gitlab-logo.svg" [svgStyle]="{'width.px': 48}"></svg-icon>
+    </div>
+
+    <div *ngIf="errorMessage" class="row">
+      <div class="eight wide column centered ">
+        <div class="ui red message">{{errorMessage}}</div>
+      </div>
+    </div>
+
+    <div *ngIf="invalidConfig" class="row">
+      <div class="eight wide column centered ">
+        <div class="ui attached message">
+          <div class="header">
+            Invalid Configuration
+          </div>
+        </div>
+        <div class="ui attached fluid segment">
+          <p>
+            Make sure all configs are set.
+            The following properties must be defined in the URL.
+          </p>
+          <ul>
+            <li>gitlab: {{gitlab}}</li>
+            <li>token: {{token}}</li>
+            <li>projects: {{projects}}</li>
+          </ul>
+        </div>
+        <div class="ui bottom attached warning message">
+          <p>Ex: http://gitlab-ci-monitor.example.com?gitlab=gitlab.example.com&token=some-token&projects=namespace/project1/branch,namespace/project2/branch,namespace/project3/branch</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="row">
+      <div class="ui large active centered inline loader"></div>
+    </div>
+    <div class="row builds">
+      <div class="sixteen wide column">
+        <div class="ui stackable cards">
+          <div *ngFor="let build of builds" class="card {{build.status}}">
+            <div class="content">
+              <div class="header project-name">
+                <a target="_blank" href="https://{{gitlab}}/{{build.project_path}}">{{ build.project }} ({{ build.branch }})</a>
+              </div>
+              <div class="meta">{{ build.author }}</div>
+              <div class="description">
+              </div>
+            </div>
+            <div class="extra content">
+                <span class="left floated hashtag build-id">
+                  <a target="_blank" href="https://{{gitlab}}/{{build.project_path}}/builds/{{ build.id }}">
+                  <i class="hashtag icon"></i>
+                    {{ build.id}}
+                  </a>
+                </span>
+              <span class="right floated calendar">
+                  <i class="calendar icon"></i>
+                  {{ build.started_at }}
+                </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

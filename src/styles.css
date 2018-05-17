@@ -1,3 +1,8 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/components/card.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/components/grid.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/components/message.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css");
+
 body {
   background:#3C454D;
 }
