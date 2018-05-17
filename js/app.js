@@ -42,7 +42,7 @@ var app = new Vue({
 
     var self = this
     setInterval(function(){
-      self.fetchBuilds()
+      self.fetchPipelines()
     }, 60000)
   },
   methods: {

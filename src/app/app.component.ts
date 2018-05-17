@@ -8,10 +8,10 @@ import Axios from 'axios';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  public builds: any[];
+  public builds: Map<number, any> = new Map();
 
-  public loading: boolean = false;
-  public invalidConfig: boolean = false;
+  public loading = false;
+  public invalidConfig = false;
   public errorMessage: string;
 
   private gitlab: string;
@@ -21,17 +21,22 @@ export class AppComponent implements OnInit {
   private param_projects: string;
 
   private projects: any[] = [];
+  private failedProjects: any[] = [];
 
   private axios: any;
 
   constructor() {
   }
 
+  getBuilds() {
+    return Array.from(this.builds.values());
+  }
+
   ngOnInit(): void {
-    this.gitlab         = this.getParam('gitlab');
-    this.token          = this.getParam('token');
+    this.gitlab = this.getParam('gitlab');
+    this.token = this.getParam('token');
     this.param_projects = this.getParam('projects');
-    this.param_ref      = this.getParam('ref');
+    this.param_ref = this.getParam('ref');
 
     this.update();
 
@@ -44,15 +49,15 @@ export class AppComponent implements OnInit {
     this.fetchProjects();
 
     const self = this;
-    setInterval(function(){
-      self.fetchBuilds()
-    }, 60000)
+    setInterval(function () {
+      self.updateBuilds();
+    }, 60000);
   }
 
-  getParam( name: string ): string {
+  getParam(name: string): string {
     const results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
 
-    if(!results){
+    if (!results) {
       return null;
     }
 
@@ -60,32 +65,36 @@ export class AppComponent implements OnInit {
   }
 
   update() {
-    const projectNames = this.param_projects.split(",");
-    console.log( projectNames );
+    if (!this.param_projects) {
+      this.errorMessage = 'No projects supplied.';
+      return;
+    }
 
-    for (let project in projectNames) {
+    const projectNames = this.param_projects.split(',');
+    console.log(projectNames);
+
+    for (const projectName of projectNames) {
       try {
-        const projectParts = projectNames[project].split('/');
+        const projectParts = projectName.split('/');
         const namespace = projectParts[0].trim();
-        const projectName = projectParts[1].trim();
-        const nameWithNamespace = namespace + "/" + projectName;
-        let branch = "master";
+        const project = projectParts[1].trim();
+        const nameWithNamespace = namespace + '/' + project;
+        let branch = 'master';
 
         if (projectParts.length > 2) {
-          branch = projectParts[2].trim()
+          branch = projectParts[2].trim();
         }
 
-        let projectInfo = {
+        const projectInfo = {
           nameWithNamespace: nameWithNamespace,
-          projectName: projectName,
+          projectName: project,
           branch: branch
         };
         this.projects.push(projectInfo);
 
-        console.log( projectInfo );
-      }
-      catch(err) {
-        this.errorMessage = err; //"Wrong format";
+        console.log(projectInfo);
+      } catch (err) {
+        this.errorMessage = err;
       }
     }
   }
@@ -96,78 +105,68 @@ export class AppComponent implements OnInit {
 
   setupDefaults() {
     this.axios = Axios.create({
-      baseURL: "https://" + this.gitlab + "/api/v4",
+      baseURL: 'https://' + this.gitlab + '/api/v4',
       headers: {
         common: {
-          'PRIVATE-TOKEN': this.token
+          'Private-Token': this.token
         }
-      }
+      },
+      validateStatus: status => status < 500
     });
   }
 
   fetchProjects() {
-    const self = this;
-
-    self.loading = true;
-    Promise.all( this.projects.map(project =>
-      self.axios.get('/projects/' + project.nameWithNamespace.replace('/', '%2F'))
-                .then( response => project.data = response.data )
-    )).then( _ => this.fetchBuilds() )
-      .catch( err => this.errorMessage = err );
-  }
-
-  fetchBuilds() {
-    const self = this;
-    this.projects.forEach(project => {
-      self.axios.get('/projects/' + project.data.id + '/repository/branches/' + project.branch )
-        .then(function (response) {
-          let lastCommit = response.data.commit.id;
-          self.axios.get('/projects/' + project.data.id + '/repository/commits/' + lastCommit + '/builds')
-            .then( response => {
-              let updated = false;
-
-              const build = self.filterLastBuild(response.data);
-              if (!build) {
-                return
-              }
-
-              let startedFromNow = moment(build.started_at).fromNow();
-
-              self.builds.forEach(b => {
-                if (b.project == project.project.projectName && b.branch == project.project.branch) {
-                  updated = true;
-
-                  b.id = build.id;
-                  b.status = build.status;
-                  b.started_at = startedFromNow;
-                  b.author = build.commit.author_name;
-                  b.project_path = project.data.path_with_namespace;
-                  b.branch = project.project.branch;
-                }
-              });
-
-              if (!updated) {
-                self.builds.push({
-                  project: project.project.projectName,
-                  id: build.id,
-                  status: build.status,
-                  started_at: startedFromNow,
-                  author: build.commit.author_name,
-                  project_path: project.data.path_with_namespace,
-                  branch: project.project.branch
-                })
-              }
-            })
-            .catch(/*onError.bind(self)*/);
+    this.loading = true;
+    Promise.all(
+      this.projects.map(project => {
+        const url = '/projects/' + project.nameWithNamespace.replace('/', '%2F');
+        console.log( url );
+        return this.axios.get(url)
+          .then(response => {
+              project.data = response.data;
+              return this.fetchPipelines(project);
+            }
+          ).catch( _ => console.log( `Are you sure ${project.name} exists? I could not find it. That is a 404.`));
         })
-        .catch(/*onError.bind(self)*/);
-    })
+    ).then(_ => this.loading = false);
   }
 
-  filterLastBuild(builds) {
-    if (!Array.isArray(builds) || builds.length === 0) {
-      return
+  updateBuilds() {
+    this.projects.forEach(project => this.fetchPipelines(project));
+  }
+
+  fetchPipelines(project) {
+    if (project && project.data && project.data.id && project.branch) {
+      return this.axios.get(`/projects/${project.data.id}/pipelines`)
+        .then(pipelineResponse => this.getLastPipelineInformation(pipelineResponse, project))
+        .catch(err => this.failedProjects.push(project));
     }
-    return builds[0]
+  }
+
+  private getLastPipelineInformation(allPipelinesResponse, project) {
+    if (allPipelinesResponse.data && project.data && project.data.id) {
+      const lastPipelineId = allPipelinesResponse.data[0].id;
+      const url = `/projects/${project.data.id}/pipelines/${lastPipelineId}`;
+      console.log( url );
+      return this.axios.get(url)
+        .then(pipelineResponse => this.storeBuildInformation(pipelineResponse, project))
+        .catch(err => console.log(`Project ${project.data.name} does not have any build informamtion`));
+    }
+  }
+
+  private storeBuildInformation(pipelineResponse, project) {
+    if (pipelineResponse) {
+      const startedFromNow = moment(pipelineResponse.data.started_at).fromNow();
+
+      this.builds.set(project.data.id, {
+        project: project.projectName,
+        id: pipelineResponse.data.id,
+        status: pipelineResponse.data.status,
+        started_at: startedFromNow,
+        author: pipelineResponse.data.user.name,
+        project_path: project.data.path_with_namespace,
+        branch: project.branch
+      });
+    }
   }
 }

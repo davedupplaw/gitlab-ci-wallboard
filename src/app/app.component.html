@@ -38,10 +38,11 @@
     <div *ngIf="loading" class="row">
       <div class="ui large active centered inline loader"></div>
     </div>
+
     <div class="row builds">
       <div class="sixteen wide column">
         <div class="ui stackable cards">
-          <div *ngFor="let build of builds" class="card {{build.status}}">
+          <div *ngFor="let build of getBuilds()" class="card {{build.status}}">
             <div class="content">
               <div class="header project-name">
                 <a target="_blank" href="https://{{gitlab}}/{{build.project_path}}">{{ build.project }} ({{ build.branch }})</a>
