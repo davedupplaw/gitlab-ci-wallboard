@@ -71,8 +71,6 @@ export class AppComponent implements OnInit {
     }
 
     const projectNames = this.param_projects.split(',');
-    console.log(projectNames);
-
     for (const projectName of projectNames) {
       try {
         const projectParts = projectName.split('/');
@@ -91,8 +89,6 @@ export class AppComponent implements OnInit {
           branch: branch
         };
         this.projects.push(projectInfo);
-
-        console.log(projectInfo);
       } catch (err) {
         this.errorMessage = err;
       }
