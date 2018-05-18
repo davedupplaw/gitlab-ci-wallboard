@@ -80,16 +80,18 @@ module.exports = require("express");
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var express = __webpack_require__(0);
-var logger = __webpack_require__(10);
-var bodyParser = __webpack_require__(7);
-var root = __webpack_require__(6);
-var cookieParser = __webpack_require__(8);
-var http = __webpack_require__(9);
-var IndexController_1 = __webpack_require__(5);
-var GitLabController_1 = __webpack_require__(11);
+var logger = __webpack_require__(12);
+var bodyParser = __webpack_require__(9);
+var root = __webpack_require__(7);
+var cookieParser = __webpack_require__(10);
+var http = __webpack_require__(11);
+var cors = __webpack_require__(13);
+var IndexController_1 = __webpack_require__(6);
+var GitLabController_1 = __webpack_require__(5);
 var Server = /** @class */ (function () {
     function Server(app) {
         this._app = app;
+        this._app.use(cors());
         this.viewEngineSetup();
         this.loggerSetup();
         this.parserSetup();
@@ -104,18 +106,6 @@ var Server = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Server.prototype.listen = function (port) {
-        var _this = this;
-        this._app.set('port', port);
-        this._server = http.createServer(this._app);
-        this._server.listen(port);
-        this._server.on('error', function (error) { return Server.errorHandler(error, port); });
-        this._server.on('listening', function () { return _this.listeningHandler; });
-    };
-    Server.prototype.listeningHandler = function () {
-        var bind = "port " + this._server.address().port;
-        log("Listening on " + bind);
-    };
     Server.errorHandler = function (error, port) {
         if (error.syscall !== 'listen') {
             throw error;
@@ -134,6 +124,18 @@ var Server = /** @class */ (function () {
             default:
                 throw error;
         }
+    };
+    Server.prototype.listen = function (port) {
+        var _this = this;
+        this._app.set('port', port);
+        this._server = http.createServer(this._app);
+        this._server.listen(port);
+        this._server.on('error', function (error) { return Server.errorHandler(error, port); });
+        this._server.on('listening', function () { return _this.listeningHandler; });
+    };
+    Server.prototype.listeningHandler = function () {
+        var bind = "port " + this._server.address().port;
+        log("Listening on " + bind);
     };
     Server.prototype.viewEngineSetup = function () {
         this._app.set('views', root + "/server/views/");
@@ -155,7 +157,7 @@ var Server = /** @class */ (function () {
     };
     Server.prototype.registerNotFoundHandler = function () {
         this._app.use(function (req, res, next) {
-            var err = new Error('Not Found');
+            var err = new Error("Not Found: " + req.originalUrl);
             err.status = 404;
             next(err);
         });
@@ -226,65 +228,11 @@ new server_1.default(express()).listen(nconf.get('port'));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var IndexController = /** @class */ (function () {
-    function IndexController() {
-    }
-    IndexController.register = function (router) {
-        router.get('/', IndexController.route);
-    };
-    IndexController.route = function (req, res) {
-        res.render('index', {
-            locationOfAppBundle: 'TODO',
-            title: 'schlurp'
-        });
-    };
-    return IndexController;
-}());
-exports.default = IndexController;
-
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports) {
-
-module.exports = require("app-root-path");
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports) {
-
-module.exports = require("body-parser");
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-module.exports = require("cookie-parser");
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports) {
-
-module.exports = require("http");
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports) {
-
-module.exports = require("morgan");
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var axios_1 = __webpack_require__(12);
+var axios_1 = __webpack_require__(8);
 var GitLabController = /** @class */ (function () {
     function GitLabController() {
-        this.gitlab = "gitlab.com";
-        this.token = "yh3Kb1LsTjFB-mrATrY4";
+        this.gitlab = 'gitlab.com';
+        this.token = 'blarg';
         this.axios = axios_1.default.create({
             baseURL: 'https://' + this.gitlab + '/api/v4',
             headers: {
@@ -302,8 +250,11 @@ var GitLabController = /** @class */ (function () {
         router.get('/gitlab/projects/:projectId/pipelines/:pipelineId', function (req, res) { return gitLabController.pipeline(req, res); });
     };
     GitLabController.prototype.projects = function (req, res) {
-        var url = '/projects';
-        return this.axios.get(url).then(function (data) { return res.send(data); });
+        var url = '/users/davedupplaw/projects';
+        return this.axios.get(url).then(function (response) {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(response.data));
+        });
     };
     GitLabController.prototype.projectPipelines = function (req, res) {
         var projectId = req.params.projectId;
@@ -330,10 +281,70 @@ exports.default = GitLabController;
 
 
 /***/ }),
-/* 12 */
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var IndexController = /** @class */ (function () {
+    function IndexController() {
+    }
+    IndexController.register = function (router) {
+        router.get('/', IndexController.route);
+    };
+    IndexController.route = function (req, res) {
+        res.render('index', {
+            locationOfAppBundle: 'TODO',
+            title: 'schlurp'
+        });
+    };
+    return IndexController;
+}());
+exports.default = IndexController;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports) {
+
+module.exports = require("app-root-path");
+
+/***/ }),
+/* 8 */
 /***/ (function(module, exports) {
 
 module.exports = require("axios");
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports) {
+
+module.exports = require("body-parser");
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports) {
+
+module.exports = require("cookie-parser");
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
+module.exports = require("http");
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports) {
+
+module.exports = require("morgan");
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports) {
+
+module.exports = require("cors");
 
 /***/ })
 /******/ ])));

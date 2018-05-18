@@ -3,14 +3,14 @@ import Axios, {AxiosInstance} from 'axios';
 
 export default class GitLabController {
     private axios: AxiosInstance;
-    private gitlab: string = "gitlab.com";
-    private token: string = "yh3Kb1LsTjFB-mrATrY4";
+    private gitlab = 'gitlab.com';
+    private token = 'blarg';
 
     public static register(router: Router) {
         const gitLabController = new GitLabController();
-        router.get('/gitlab/projects', (req,res) => gitLabController.projects(req,res) );
-        router.get('/gitlab/projects/:projectId/pipelines', (req,res) => gitLabController.projectPipelines(req,res) );
-        router.get('/gitlab/projects/:projectId/pipelines/:pipelineId', (req,res) => gitLabController.pipeline(req,res) );
+        router.get('/gitlab/projects', (req, res) => gitLabController.projects(req, res));
+        router.get('/gitlab/projects/:projectId/pipelines', (req, res) => gitLabController.projectPipelines(req, res));
+        router.get('/gitlab/projects/:projectId/pipelines/:pipelineId', (req, res) => gitLabController.pipeline(req, res));
     }
 
     constructor() {
@@ -26,8 +26,11 @@ export default class GitLabController {
     }
 
     public projects(req: Request, res: Response) {
-        const url = '/projects';
-        return this.axios.get(url).then( data => res.send( data ) );
+        const url = '/users/davedupplaw/projects';
+        return this.axios.get(url).then(response => {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(response.data));
+        });
     }
 
     private projectPipelines(req: Request, res: Response) {
@@ -35,8 +38,8 @@ export default class GitLabController {
         const url = `/projects/${projectId}/pipelines`;
         return this.axios.get(url)
             .then(response => {
-                    res.send( response.data );
-                })
+                res.send(response.data);
+            })
             .catch(_ => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
     }
 
@@ -46,7 +49,7 @@ export default class GitLabController {
         const url = `/projects/${projectId}/pipelines/${pipelineId}`;
         return this.axios.get(url)
             .then(response => {
-                res.send( response.data );
+                res.send(response.data);
             })
             .catch(_ => res.send(`Are you sure ${projectId} and ${pipelineId} exist? I could not find it. That is a 404.`));
     }

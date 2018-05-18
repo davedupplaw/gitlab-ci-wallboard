@@ -8,7 +8,7 @@ import Axios from 'axios';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  public builds: Map<number, any> = new Map();
+  public builds: any[];
 
   public loading = false;
   public invalidConfig = false;
@@ -22,6 +22,7 @@ export class AppComponent implements OnInit {
 
   private projects: any[] = [];
   private failedProjects: any[] = [];
+  private buildMap: Map<number, any> = new Map();
 
   private axios: any;
 
@@ -29,13 +30,13 @@ export class AppComponent implements OnInit {
   }
 
   getBuilds() {
-    return Array.from(this.builds.values());
+    return this.builds;
   }
 
   ngOnInit(): void {
     this.gitlab = this.getParam('gitlab');
     this.token = this.getParam('token');
-    this.param_projects = this.getParam('projects');
+    this.param_projects = 'davedupplaw/group-bells'; // this.getParam('projects');
     this.param_ref = this.getParam('ref');
 
     this.update();
@@ -96,35 +97,28 @@ export class AppComponent implements OnInit {
   }
 
   configValid() {
-    return this.gitlab && this.token && this.param_projects;
+    return true; // this.gitlab && this.token && this.param_projects;
   }
 
   setupDefaults() {
     this.axios = Axios.create({
-      baseURL: 'https://' + this.gitlab + '/api/v4',
-      headers: {
-        common: {
-          'Private-Token': this.token
-        }
-      },
+      baseURL: 'http://localhost:3000/gitlab',
       validateStatus: status => status < 500
     });
   }
 
   fetchProjects() {
     this.loading = true;
-    Promise.all(
-      this.projects.map(project => {
-        const url = '/projects/' + project.nameWithNamespace.replace('/', '%2F');
-        console.log( url );
-        return this.axios.get(url)
-          .then(response => {
-              project.data = response.data;
-              return this.fetchPipelines(project);
-            }
-          ).catch( _ => console.log( `Are you sure ${project.name} exists? I could not find it. That is a 404.`));
+
+    const url = '/projects';
+    this.axios.get(url).then(projectResponse =>
+      Promise.all(
+        projectResponse.data.map(project => {
+          console.log(`Project ${project.name} (${project.id})`);
+          return this.fetchPipelines(project);
         })
-    ).then(_ => this.loading = false);
+      ).then(_ => this.loading = false)
+    );
   }
 
   updateBuilds() {
@@ -132,36 +126,41 @@ export class AppComponent implements OnInit {
   }
 
   fetchPipelines(project) {
-    if (project && project.data && project.data.id && project.branch) {
-      return this.axios.get(`/projects/${project.data.id}/pipelines`)
+    if (project && project.id) {
+      return this.axios.get(`/projects/${project.id}/pipelines`)
         .then(pipelineResponse => this.getLastPipelineInformation(pipelineResponse, project))
         .catch(err => this.failedProjects.push(project));
     }
   }
 
   private getLastPipelineInformation(allPipelinesResponse, project) {
-    if (allPipelinesResponse.data && project.data && project.data.id) {
+    if (allPipelinesResponse.data && project.id) {
       const lastPipelineId = allPipelinesResponse.data[0].id;
-      const url = `/projects/${project.data.id}/pipelines/${lastPipelineId}`;
-      console.log( url );
+      const url = `/projects/${project.id}/pipelines/${lastPipelineId}`;
+      console.log(url);
       return this.axios.get(url)
-        .then(pipelineResponse => this.storeBuildInformation(pipelineResponse, project))
-        .catch(err => console.log(`Project ${project.data.name} does not have any build informamtion`));
+        .then(pipelineResponse => this.storeBuildInformation(pipelineResponse.data, project))
+        .catch(err => console.log(`Project ${project.name} does not have any build informamtion`));
     }
   }
 
   private storeBuildInformation(pipelineResponse, project) {
     if (pipelineResponse) {
-      const startedFromNow = moment(pipelineResponse.data.started_at).fromNow();
+      const startedFromNow = moment(pipelineResponse.started_at).fromNow();
 
-      this.builds.set(project.data.id, {
-        project: project.projectName,
-        id: pipelineResponse.data.id,
-        status: pipelineResponse.data.status,
+      this.buildMap.set(project.id, {
+        project: project.name,
+        id: pipelineResponse.id,
+        status: pipelineResponse.status,
         started_at: startedFromNow,
-        author: pipelineResponse.data.user.name,
-        project_path: project.data.path_with_namespace,
-        branch: project.branch
+        started: pipelineResponse.started_at,
+        author: pipelineResponse.user.name,
+        project_path: project.path_with_namespace,
+        branch: pipelineResponse.ref
+      });
+
+      this.builds = Array.from(this.buildMap.values()).sort((a, b) => {
+        return a.stared - b.started;
       });
     }
   }

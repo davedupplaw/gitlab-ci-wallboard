@@ -5,9 +5,10 @@ import * as root from 'app-root-path';
 import * as cookieParser from 'cookie-parser';
 import * as http from 'http';
 import {Application} from 'express';
+import * as cors from 'cors';
 
 import IndexController from './controllers/IndexController';
-import GitLabController from "./controllers/GitLabController";
+import GitLabController from './controllers/GitLabController';
 
 export default class Server {
     private readonly _app: Application;
@@ -15,6 +16,7 @@ export default class Server {
 
     constructor(app: Application) {
         this._app = app;
+        this._app.use(cors());
 
         this.viewEngineSetup();
         this.loggerSetup();
@@ -27,20 +29,6 @@ export default class Server {
 
     get app() {
         return this._app;
-    }
-
-    public listen(port: number) {
-        this._app.set('port', port);
-        this._server = http.createServer(this._app);
-        this._server.listen(port);
-
-        this._server.on('error', (error) => Server.errorHandler(error, port) );
-        this._server.on('listening', () => this.listeningHandler );
-    }
-
-    private listeningHandler() {
-        const bind = `port ${this._server.address().port}`;
-        log(`Listening on ${bind}`);
     }
 
     private static errorHandler(error, port) {
@@ -63,6 +51,20 @@ export default class Server {
             default:
                 throw error;
         }
+    }
+
+    public listen(port: number) {
+        this._app.set('port', port);
+        this._server = http.createServer(this._app);
+        this._server.listen(port);
+
+        this._server.on('error', (error) => Server.errorHandler(error, port) );
+        this._server.on('listening', () => this.listeningHandler );
+    }
+
+    private listeningHandler() {
+        const bind = `port ${this._server.address().port}`;
+        log(`Listening on ${bind}`);
     }
 
     private viewEngineSetup() {
@@ -91,7 +93,7 @@ export default class Server {
 
     private registerNotFoundHandler() {
         this._app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-            let err: any = new Error('Not Found');
+            const err: any = new Error(`Not Found: ${req.originalUrl}`);
             err.status = 404;
             next(err);
         });
