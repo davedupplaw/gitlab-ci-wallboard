@@ -1,5 +1,5 @@
 {
-  "name": "@siemens/gitlab-ci-wallboard-srv",
+  "name": "gitlab-ci-wallboard-srv",
   "version": "1.0.0",
   "description": "GitLab CI Wallboard Gateway Server",
   "private": true,
@@ -33,13 +33,7 @@
     "typescript": "^2.2.1",
     "typings": "^1.3.3",
     "webpack": "^2.2.1",
-    "webpack-server": "^0.1.2"
-  },
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
-  "dependencies": {
+    "webpack-server": "^0.1.2",
     "app-root-path": "^2.0.1",
     "body-parser": "^1.17.1",
     "cookie-parser": "^1.4.3",
@@ -48,5 +42,11 @@
     "express": "^4.15.2",
     "morgan": "^1.7.0",
     "nconf": "^0.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "dependencies": {
   }
 }

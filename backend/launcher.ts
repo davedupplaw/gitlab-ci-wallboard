@@ -1,6 +1,6 @@
 import * as debug from 'debug';
 import * as nconf from 'nconf';
-import Server from '../server/server';
+import Server from './server/server';
 import * as express from 'express';
 
 nconf.env().argv();

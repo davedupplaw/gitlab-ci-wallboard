@@ -1,16 +1,16 @@
 ################
 ## STEP 1
 ################
-
 FROM mhart/alpine-node
 
 # Create app directory
 WORKDIR /app
 
-# Copy the package.json so we can install the dependencies
-COPY package*.json ./
+# Copy the files needed to build the bundle
+COPY . ./
 
 # Build
+RUN npm install
 RUN npm run build
 
 ################
@@ -24,15 +24,8 @@ FROM mhart/alpine-node:base
 # Create app directory
 WORKDIR /app
 
-# Copy the views so we can render something
-# (these are first as they're least likely to change)
-COPY server/views ./server/views
-
-COPY --from=0 /app .
-
-# Bundle compiled server into image with config
-COPY config .
-COPY build .
+COPY --from=0 /app/build ./
+COPY --from=0 /app/node_modules ./node_modules/
 
 # Start the app
 EXPOSE 3000

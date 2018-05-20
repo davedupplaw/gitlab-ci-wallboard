@@ -1,6 +1,6 @@
 const root = require('app-root-path').path;
 module.exports = {
-    entry: `${root}/bin/www.ts`,
+    entry: `${root}/launcher.ts`,
     target: 'node',
     externals: [
         /^[a-z\-0-9]+$/ // Ignore node_modules folder
