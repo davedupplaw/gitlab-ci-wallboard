@@ -85,8 +85,8 @@ export default class Server {
     private routerSetup() {
         const router = express.Router();
 
-        IndexController.register(router);
-        GitLabController.register(router);
+        IndexController.register(this._app);
+        GitLabController.register(this._app);
 
         this._app.use('/', router);
     }

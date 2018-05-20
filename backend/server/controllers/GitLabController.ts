@@ -1,4 +1,4 @@
-import {Router, Request, Response} from 'express';
+import * as express from 'express';
 import Axios, {AxiosInstance} from 'axios';
 
 export default class GitLabController {
@@ -6,11 +6,13 @@ export default class GitLabController {
     private gitlab: string;
     private token: string;
 
-    public static register(router: Router) {
+    public static register(app: express.Application) {
         const gitLabController = new GitLabController();
-        router.get('/gitlab/projects', (req, res) => gitLabController.projects(req, res));
-        router.get('/gitlab/projects/:projectId/pipelines', (req, res) => gitLabController.projectPipelines(req, res));
-        router.get('/gitlab/projects/:projectId/pipelines/:pipelineId', (req, res) => gitLabController.pipeline(req, res));
+        const router = express.Router();
+        router.get('/projects', (req, res) => gitLabController.projects(req, res));
+        router.get('/projects/:projectId/pipelines', (req, res) => gitLabController.projectPipelines(req, res));
+        router.get('/projects/:projectId/pipelines/:pipelineId', (req, res) => gitLabController.pipeline(req, res));
+        app.use('/gitlab', router);
     }
 
     constructor() {
@@ -27,7 +29,7 @@ export default class GitLabController {
         });
     }
 
-    public projects(req: Request, res: Response) {
+    public projects(req: express.Request, res: express.Response) {
         const url = '/users/davedupplaw/projects';
         return this.axios.get(url).then(response => {
             res.setHeader('Content-Type', 'application/json');
@@ -35,7 +37,7 @@ export default class GitLabController {
         });
     }
 
-    private projectPipelines(req: Request, res: Response) {
+    private projectPipelines(req: express.Request, res: express.Response) {
         const projectId = req.params.projectId;
         const url = `/projects/${projectId}/pipelines`;
         return this.axios.get(url)
@@ -45,7 +47,7 @@ export default class GitLabController {
             .catch(_ => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
     }
 
-    private pipeline(req: Request, res: Response) {
+    private pipeline(req: express.Request, res: express.Response) {
         const projectId = req.params.projectId;
         const pipelineId = req.params.pipelineId;
         const url = `/projects/${projectId}/pipelines/${pipelineId}`;

@@ -11,7 +11,7 @@
     "watch": "webpack --config build-config/webpack.config.js --watch",
     "postinstall": "node node_modules/typings/dist/bin.js install --overwrite",
     "start": "node build/compiled.js",
-    "dev": "nodemon build/compiled.js -e js -w build",
+    "dev": "cd build && nodemon compiled.js -e js -w build",
     "test": "jasmine-node spec"
   },
   "main": "",

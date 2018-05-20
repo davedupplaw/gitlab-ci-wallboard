@@ -1,14 +1,7 @@
-import {Router, Request, Response} from "express";
+import * as express from 'express';
 
 export default class IndexController {
-    public static register(router: Router) {
-        router.get('/', IndexController.route);
-    }
-
-    public static route(req: Request, res: Response) {
-        res.render('index', {
-            locationOfAppBundle: 'TODO',
-            title: 'schlurp'
-        });
+    public static register(app: express.Application) {
+        app.use('/', express.static('public'));
     }
 }
