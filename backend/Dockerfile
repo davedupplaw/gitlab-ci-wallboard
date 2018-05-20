@@ -10,8 +10,8 @@ WORKDIR /app
 # Copy the package.json so we can install the dependencies
 COPY package*.json ./
 
-# Install only runtime dependencies
-RUN npm install --only=production
+# Build
+RUN npm run build
 
 ################
 ## STEP 2
