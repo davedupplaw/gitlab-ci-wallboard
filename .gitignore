@@ -5,6 +5,7 @@ frontend/dist
 **/tmp
 frontend/out-tsc
 backend/out-tsc
+backend/build
 
 # dependencies
 /node_modules
@@ -39,3 +40,6 @@ backend/out-tsc
 # System Files
 **/.DS_Store
 **/Thumbs.db
+
+# local config
+env.sh

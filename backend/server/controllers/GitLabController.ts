@@ -3,8 +3,8 @@ import Axios, {AxiosInstance} from 'axios';
 
 export default class GitLabController {
     private axios: AxiosInstance;
-    private gitlab = 'gitlab.com';
-    private token = 'blarg';
+    private gitlab: string;
+    private token: string;
 
     public static register(router: Router) {
         const gitLabController = new GitLabController();
@@ -14,6 +14,8 @@ export default class GitLabController {
     }
 
     constructor() {
+        this.gitlab = process.env.GITLAB_HOST || 'gitlab.com';
+        this.token  = process.env.GITLAB_TOKEN;
         this.axios = Axios.create({
             baseURL: 'https://' + this.gitlab + '/api/v4',
             headers: {
