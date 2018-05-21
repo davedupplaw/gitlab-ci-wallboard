@@ -38,6 +38,7 @@ docker run -d -p 3000:3000 \
            -e GITLAB_TOKEN=12345 \
            davedupplaw/gitlab-ci-wallboard
 ```
+(sorry container not in DockerHub just yet)
 
 ### Configuration
 
