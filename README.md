@@ -7,9 +7,6 @@ a Typescript nodeJS backend. This allows it to be dockerised and contained
 to one GitLab, with one set of projects and without passing a personal
 access token over the URL.
 
-[gitlab-ci]: https://about.gitlab.com/gitlab-ci/
-[original-github]: https://github.com/TheoTsatsos/gitlab-ci-wallboard
-
 The current functionality is that it reads a list of projects from the Git server
 using the Personal Access Token provided. For those with build information,
 it shows them on the page coloured green for success, or red for failure.  It shows
@@ -20,8 +17,6 @@ The page currently updates every 60 seconds and builds are ordered by name.
 This is how it looks:
 
 ![Example][example]
-
-[example]: gitlab-ci-monitor-example.png
 
 ## Usage
 
@@ -87,9 +82,9 @@ The backend code is my own work and is also licensed under the
 
 ## Intended Extensions
 
-* Order by name and build status (so red builds come first)
-* Project/Group black/white list (maybe you don't want to see all)
-* Report on semantic commit frequencies (chores vs features)
-* Report on committer frequency (who's doing most work)
-* Report breakages as a percentage of commits (who's breaking the builds most)
-* Audio alerts on broken build
+See the [Trello Board](trello)
+
+[gitlab-ci]: https://about.gitlab.com/gitlab-ci/
+[original-github]: https://github.com/TheoTsatsos/gitlab-ci-wallboard
+[trello]: https://trello.com/b/v667U5fY/gitlab-ci-wallboard
+[example]: gitlab-ci-monitor-example.png
