@@ -30,7 +30,8 @@ export default class GitLabController {
     }
 
     public projects(req: express.Request, res: express.Response) {
-        const url = '/users/davedupplaw/projects';
+        // const url = '/users/davedupplaw/projects';
+        const url = '/projects';
         return this.axios.get(url).then(response => {
             res.setHeader('Content-Type', 'application/json');
             res.send(JSON.stringify(response.data));
