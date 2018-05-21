@@ -160,7 +160,13 @@ export class AppComponent implements OnInit {
       });
 
       this.builds = Array.from(this.buildMap.values()).sort((a, b) => {
-        return a.stared - b.started;
+        if (a.status === 'success' && b.status === 'failed') {
+          return 1;
+        } else if (a.status === 'failed' && b.status === 'success') {
+          return -1;
+        } else {
+          return a.project.localeCompare(b.project);
+        }
       });
     }
   }
