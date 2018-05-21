@@ -47,16 +47,22 @@ ng serve
 ```
 Angular server runs on port 4200 by default.
 
-Alternatively, build the backend which places it in a directory to be
-served by the backend, then run the backend.
+Alternatively, build the frontend which places it in a directory to be
+served by the backend, then run the backend.  You can build the frontend
+on a watch:
+```
+ng build --watch
+```
 
-To run the backend, run in different shells:
+Then, to run the backend, run in different shells:
 ```
 npm run dev
 npm run watch
 ```
 which runs the compilation of the server and then the hot reloading for
-when the bundle changes.  The backend listens on port 3000.
+when the bundle changes.  
+
+The backend listens on port 3000.
 
 ### Building Docker Image
 
