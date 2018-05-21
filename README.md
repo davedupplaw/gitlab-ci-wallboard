@@ -18,20 +18,61 @@ This is how it looks:
 
 ## Usage
 
+The node server takes the GitLab host and GitLab token from its environment.
+The variables `GITLAB_HOST` and `GITLAB_TOKEN` are used to pass these to
+the node server.
+
+If you're running from the source use:
+
+```
+GITLAB_HOST=gitlab.com GITLAB_TOKEN=12345 node compiled.js
+```
+
+However, you can also run it using a docker container:
+
+```
+docker run -d -p 3000:3000 \
+           -e GITLAB_HOST=gitlab.com \
+           -e GITLAB_TOKEN=12345 \
+           gitlab-ci-wallboard
+```
+
 ## Development
 
-To run the backend, in different shells run:
+To run the front-end only, run:
+```
+ng serve
+```
+Angular server runs on port 4200 by default.
+
+Alternatively, build the backend which places it in a directory to be
+served by the backend, then run the backend.
+
+To run the backend, run in different shells:
 ```
 npm run dev
 npm run watch
 ```
 which runs the compilation of the server and then the hot reloading for
-when the bundle changes.
+when the bundle changes.  The backend listens on port 3000.
 
-To run the front-end, run:
+### Building Docker Image
+
+To build the docker image, first build the front-end, which will place its output
+files into the backend build directory:
+
 ```
-ng serve
+ng build
 ```
+
+Then you can build the docker container (which will invoke the building of the
+backend automatically), by changing the backend directory and invoking a build:
+
+```
+cd backend
+docker build -t gitlab-ci-wallboard .
+```
+
 
 ## License
 
