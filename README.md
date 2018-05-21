@@ -39,6 +39,18 @@ docker run -d -p 3000:3000 \
            davedupplaw/gitlab-ci-wallboard
 ```
 
+### Configuration
+
+Here are the configuration options that can be passed in the environment:
+
+| Option        | Description                                  |
+| ------------- | -------------------------------------------- |
+| GITLAB_HOST   | Which GitLab server to get information from  |
+| GITLAB_TOKEN  | The Personal Access Token to use to get information |
+| GCIWB_GROUPS  | The groups to use to get projects from (csv) (mutually exclusive with GCIWB_USERS) |
+| GCIWB_USERS   | The users to use get projects from (csv) (mutually exclusive with GCIWB_GROUPS) |
+| GCIWB_PROJECTS | The list of projects to use (csv) |
+
 ## Development
 
 To run the front-end only, run:
