@@ -41,7 +41,7 @@ However, you can also run it using a docker container:
 docker run -d -p 3000:3000 \
            -e GITLAB_HOST=gitlab.com \
            -e GITLAB_TOKEN=12345 \
-           gitlab-ci-wallboard
+           davedupplaw/gitlab-ci-wallboard
 ```
 
 ## Development
