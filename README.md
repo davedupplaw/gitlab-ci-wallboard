@@ -65,21 +65,14 @@ when the bundle changes.  The backend listens on port 3000.
 
 ### Building Docker Image
 
-To build the docker image, first build the front-end, which will place its output
-files into the backend build directory:
+To build the docker image:
 
 ```
-ng build
-```
-
-Then you can build the docker container (which will invoke the building of the
-backend automatically), by changing the backend directory and invoking a build:
-
-```
-cd backend
 docker build -t gitlab-ci-wallboard .
 ```
 
+This will build the front and back end systems and then create a
+docker image containing the code.
 
 ## License
 
