@@ -101,7 +101,7 @@ The backend code is my own work and is also licensed under the
 
 ## Intended Extensions
 
-See the [Trello Board](trello)
+See the [Trello Board][trello]
 
 [gitlab-ci]: https://about.gitlab.com/gitlab-ci/
 [original-github]: https://github.com/TheoTsatsos/gitlab-ci-wallboard
