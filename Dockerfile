@@ -11,6 +11,7 @@ WORKDIR /app
 COPY . ./
 
 # Build
+RUN npm i npm@latest -g
 RUN cd frontend && npm install && ng build
 RUN cd backend && npm install && npm run build
 
