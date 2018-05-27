@@ -20,6 +20,14 @@ export default class GitLabController {
         app.use('/gitlab', router);
     }
 
+    private static throwIfBadResponse(responses) {
+        const max = Math.max(...responses.map(r => r.status));
+        if (max >= 300) {
+            console.log('Max status: ', max);
+            throw new Error('Got response ' + max);
+        }
+    }
+
     constructor() {
         this.gitlab = process.env.GITLAB_HOST || 'gitlab.com';
         this.token = process.env.GITLAB_TOKEN;
@@ -53,9 +61,10 @@ export default class GitLabController {
 
         return Promise.all(urls.map(projectUrl => this.axios.get(projectUrl)))
             .then(responses => {
-                this.throwIfBadResponse(responses);
+                GitLabController.throwIfBadResponse(responses);
 
                 const projectInfos = responses.flatMap(v => v.data);
+                console.log( `Retrieved ${projectInfos.length} projects`);
 
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify(projectInfos));
@@ -64,14 +73,6 @@ export default class GitLabController {
                 res.status(500);
                 res.send(error.toString());
             });
-    }
-
-    private throwIfBadResponse(responses) {
-        const max = Math.max(...responses.map(r => r.status));
-        if (max >= 300) {
-            console.log('Max status: ', max);
-            throw new Error('Got response ' + max);
-        }
     }
 
     private getUrls(users: string[], groups: string[], projects: string[]) {
@@ -94,7 +95,7 @@ export default class GitLabController {
             .then(response => {
                 res.send(response.data);
             })
-            .catch(_ => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
+            .catch(() => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
     }
 
     private pipeline(req: express.Request, res: express.Response) {
@@ -105,6 +106,6 @@ export default class GitLabController {
             .then(response => {
                 res.send(response.data);
             })
-            .catch(_ => res.send(`Are you sure ${projectId} and ${pipelineId} exist? I could not find it. That is a 404.`));
+            .catch(() => res.send(`Are you sure ${projectId} and ${pipelineId} exist? I could not find it. That is a 404.`));
     }
 }

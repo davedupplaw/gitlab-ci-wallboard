@@ -111,13 +111,14 @@ export class AppComponent implements OnInit {
     this.loading = true;
 
     const url = '/projects';
-    this.axios.get(url).then(projectResponse =>
-      Promise.all(projectResponse.data.map(project => this.fetchPipelines(project) ))
-        .then(() => this.loading = false)
-    ).catch( error => {
-      this.loading = false;
-      this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';
-    });
+    this.axios.get(url)
+      .then(projectResponse =>
+        Promise.all(projectResponse.data.map(project => this.fetchPipelines(project)))
+               .then(() => this.loading = false)
+      ).catch( error => {
+        this.loading = false;
+        this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';
+      });
   }
 
   updateBuilds() {
