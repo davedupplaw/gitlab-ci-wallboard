@@ -114,7 +114,10 @@ export class AppComponent implements OnInit {
     this.axios.get(url)
       .then(projectResponse =>
         Promise.all(projectResponse.data.map(project => this.fetchPipelines(project)))
-               .then(() => this.loading = false)
+               .then(() => {
+                 this.loading = false;
+                 console.log('Failed: ', this.failedProjects);
+               })
       ).catch( error => {
         this.loading = false;
         this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';

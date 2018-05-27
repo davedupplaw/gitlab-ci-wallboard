@@ -1,7 +1,7 @@
 import * as express from 'express';
 import Axios, {AxiosInstance} from 'axios';
 import StringUtils from '../util/StringUtils';
-import '../util/flatMap.fn';
+import '../util/ArrayUtils';
 
 export default class GitLabController {
     private axios: AxiosInstance;
@@ -21,10 +21,11 @@ export default class GitLabController {
     }
 
     private static throwIfBadResponse(responses) {
-        const max = Math.max(...responses.map(r => r.status));
-        if (max >= 300) {
-            console.log('Max status: ', max);
-            throw new Error('Got response ' + max);
+        const max = responses.max(r => r.status);
+        if (max.status >= 300) {
+            const message = 'Got response ' + max.status + ' from project ' + max.name;
+            console.log('Max status: ', message);
+            throw new Error(message );
         }
     }
 
@@ -61,6 +62,7 @@ export default class GitLabController {
 
         return Promise.all(urls.map(projectUrl => this.axios.get(projectUrl)))
             .then(responses => {
+                console.log( responses );
                 GitLabController.throwIfBadResponse(responses);
 
                 const projectInfos = responses.flatMap(v => v.data);
@@ -76,15 +78,15 @@ export default class GitLabController {
     }
 
     private getUrls(users: string[], groups: string[], projects: string[]) {
-        const params = '?simple=true';
+        const params = '?simple=true&per_page=100';
         if (users.length > 0) {
             return users.map(user => `/users/${user}/projects${params}`);
         } else if (groups.length > 0) {
             return groups.map(group => `/groups/${group}/projects${params}`);
         } else if (projects.length > 0) {
-            return projects.map(project => `/projects/${project}`);
+            return projects.map(project => `/projects/${project}${params}`);
         } else {
-            return ['/projects'];
+            return [`/projects${params}`];
         }
     }
 

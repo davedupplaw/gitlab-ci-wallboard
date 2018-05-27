@@ -1,5 +1,6 @@
 interface Array<T> {
     flatMap<E>(callback: (t: T) => Array<E>): Array<E>;
+    max<E>(selector: (t: T) => E): Array<T>;
 }
 
 Object.defineProperty(Array.prototype, 'flatMap', {
@@ -9,4 +10,11 @@ Object.defineProperty(Array.prototype, 'flatMap', {
         }, []);
     },
     enumerable: false,
+});
+
+Object.defineProperty(Array.prototype, 'max', {
+   value: function( selector: Function) {
+       return this.reduce( (a: any, b: any): any =>
+           selector(a) > selector(b) ? a : b );
+   }
 });
