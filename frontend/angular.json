@@ -23,7 +23,8 @@
               { "glob": "favicon.ico", "input": "src/", "output": "/" }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.scss",
+              "node_modules/font-awesome/css/font-awesome.css"
             ],
             "scripts": []
           },
@@ -72,7 +73,7 @@
             "tsConfig": "src/tsconfig.spec.json",
             "karmaConfig": "src/karma.conf.js",
             "styles": [
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": [],
             "assets": [
@@ -118,5 +119,10 @@
       }
     }
   },
-  "defaultProject": "gitlab-ci-wallboard"
+  "defaultProject": "gitlab-ci-wallboard",
+  "schematics": {
+    "@schematics/angular:component": {
+      "styleext": "scss"
+    }
+  }
 }

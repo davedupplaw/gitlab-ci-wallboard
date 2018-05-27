@@ -5,7 +5,7 @@ import Axios from 'axios';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
   public builds: any[];
@@ -29,19 +29,33 @@ export class AppComponent implements OnInit {
   constructor() {
   }
 
+  static getParam(name: string): string {
+    const results = new RegExp('[\\?&]' as string + name + '=([^&#]*)').exec(window.location.href);
+
+    if (!results) {
+      return null;
+    }
+
+    return results[1] || null;
+  }
+
+  static configValid() {
+    return true; // this.gitlab && this.token && this.param_projects;
+  }
+
   getBuilds() {
     return this.builds;
   }
 
   ngOnInit(): void {
-    this.gitlab = this.getParam('gitlab');
-    this.token = this.getParam('token');
+    this.gitlab = AppComponent.getParam('gitlab');
+    this.token = AppComponent.getParam('token');
     this.param_projects = 'davedupplaw/group-bells'; // this.getParam('projects');
-    this.param_ref = this.getParam('ref');
+    this.param_ref = AppComponent.getParam('ref');
 
     this.update();
 
-    if (!this.configValid()) {
+    if (!AppComponent.configValid()) {
       this.invalidConfig = true;
       return;
     }
@@ -53,16 +67,6 @@ export class AppComponent implements OnInit {
     setInterval(function () {
       self.updateBuilds();
     }, 60000);
-  }
-
-  getParam(name: string): string {
-    const results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
-
-    if (!results) {
-      return null;
-    }
-
-    return results[1] || null;
   }
 
   update() {
@@ -96,10 +100,6 @@ export class AppComponent implements OnInit {
     }
   }
 
-  configValid() {
-    return true; // this.gitlab && this.token && this.param_projects;
-  }
-
   setupDefaults() {
     this.axios = Axios.create({
       baseURL: 'http://localhost:3000/gitlab',
@@ -112,13 +112,12 @@ export class AppComponent implements OnInit {
 
     const url = '/projects';
     this.axios.get(url).then(projectResponse =>
-      Promise.all(
-        projectResponse.data.map(project => {
-          console.log(`Project ${project.name} (${project.id})`);
-          return this.fetchPipelines(project);
-        })
-      ).then(_ => this.loading = false)
-    );
+      Promise.all(projectResponse.data.map(project => this.fetchPipelines(project) ))
+        .then(() => this.loading = false)
+    ).catch( error => {
+      this.loading = false;
+      this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';
+    });
   }
 
   updateBuilds() {
@@ -129,7 +128,7 @@ export class AppComponent implements OnInit {
     if (project && project.id) {
       return this.axios.get(`/projects/${project.id}/pipelines`)
         .then(pipelineResponse => this.getLastPipelineInformation(pipelineResponse, project))
-        .catch(err => this.failedProjects.push(project));
+        .catch(() => this.failedProjects.push(project));
     }
   }
 
@@ -140,7 +139,7 @@ export class AppComponent implements OnInit {
       console.log(url);
       return this.axios.get(url)
         .then(pipelineResponse => this.storeBuildInformation(pipelineResponse.data, project))
-        .catch(err => console.log(`Project ${project.name} does not have any build informamtion`));
+        .catch(() => console.log(`Project ${project.name} does not have any build informamtion`));
     }
   }
 

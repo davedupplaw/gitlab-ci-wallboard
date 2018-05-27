@@ -1,0 +1,19 @@
+<div class="content">
+  <div class="header project-name">
+    <a target="_blank" href="{{link}}">{{ build.project }} ({{ build.branch }})</a>
+  </div>
+  <div class="meta">{{ build.author }}</div>
+  <div class="description"></div>
+</div>
+<div class="extra content">
+  <span class="build-id">
+    <a target="_blank" href="{{link}}/builds/{{ build.id }}">
+      <fa name="hashtag"></fa>
+      {{ build.id}}
+    </a>
+  </span>
+  <span class="calendar">
+    <fa name="calendar"></fa>
+    {{ build.started_at }}
+  </span>
+</div>

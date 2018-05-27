@@ -1,0 +1,16 @@
+#app {
+  text-align: center;
+
+  .cards {
+    margin: 0 50px;
+    padding: 0;
+    text-align: center;
+
+    &::after {
+      display: block;
+      content: ' ';
+      clear: both;
+    }
+  }
+}
+

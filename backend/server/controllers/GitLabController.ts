@@ -53,11 +53,25 @@ export default class GitLabController {
 
         return Promise.all(urls.map(projectUrl => this.axios.get(projectUrl)))
             .then(responses => {
+                this.throwIfBadResponse(responses);
+
                 const projectInfos = responses.flatMap(v => v.data);
 
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify(projectInfos));
+            })
+            .catch( error => {
+                res.status(500);
+                res.send(error.toString());
             });
+    }
+
+    private throwIfBadResponse(responses) {
+        const max = Math.max(...responses.map(r => r.status));
+        if (max >= 300) {
+            console.log('Max status: ', max);
+            throw new Error('Got response ' + max);
+        }
     }
 
     private getUrls(users: string[], groups: string[], projects: string[]) {

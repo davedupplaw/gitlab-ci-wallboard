@@ -1,0 +1,31 @@
+.card {
+  display: inline-block;
+  width: 290px;
+  margin: 0.5em 0.875em;
+  border-radius: 4px;
+  box-shadow: none !important;
+
+  & > .extra a:hover {
+    color: rgba(0,0,0,.4);
+  }
+
+  &.success {
+    background-color: #00AD68;
+  }
+
+  &.failed {
+    background-color: #E7484D;
+  }
+
+  &.pending {
+    background-color: #e75e40;
+  }
+
+  &.running{
+    background-color: #2d9fd8;
+  }
+
+  &.canceled{
+    background-color: #aaaaaa;
+  }
+}
