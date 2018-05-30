@@ -11,6 +11,7 @@ import {LoaderComponent} from './loader/loader.component';
 import {ErrorComponent} from './error/error.component';
 import {InvalidConfigComponent} from './invalid-config/invalid-config.component';
 import {LogoComponent} from './logo/logo.component';
+import { ChartCardComponent } from './chart-card/chart-card.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import {LogoComponent} from './logo/logo.component';
     LoaderComponent,
     ErrorComponent,
     InvalidConfigComponent,
-    LogoComponent
+    LogoComponent,
+    ChartCardComponent
   ],
   imports: [
     BrowserModule,
