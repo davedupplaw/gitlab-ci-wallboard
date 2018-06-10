@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import * as moment from 'moment';
 import Axios from 'axios';
+import CommitSummary from './CommitSummary';
 
 @Component({
   selector: 'app-root',
@@ -23,6 +24,7 @@ export class AppComponent implements OnInit {
   private projects: any[] = [];
   private failedProjects: any[] = [];
   private buildMap: Map<number, any> = new Map();
+  private commitSummary: CommitSummary = new CommitSummary();
 
   private axios: any;
 
@@ -102,7 +104,7 @@ export class AppComponent implements OnInit {
 
   setupDefaults() {
     this.axios = Axios.create({
-      baseURL: 'http://localhost:3000/gitlab',
+      baseURL: `${window.location.protocol}//${window.location.host}/gitlab`,
       validateStatus: status => status < 500
     });
   }
@@ -112,16 +114,15 @@ export class AppComponent implements OnInit {
 
     const url = '/projects';
     this.axios.get(url)
-      .then(projectResponse =>
-        Promise.all(projectResponse.data.map(project => this.fetchPipelines(project)))
-               .then(() => {
-                 this.loading = false;
-                 console.log('Failed: ', this.failedProjects);
-               })
-      ).catch( error => {
+      .then(projectsResponse => {
+        projectsResponse.data.forEach( project => this.commitSummary = this.commitSummary.add( project.commitSummary ));
+        return Promise.all(projectsResponse.data.map(project => this.fetchPipelines(project)))
+          .then(() => this.loading = false);
+      }).catch(error => {
+        console.error(error);
         this.loading = false;
         this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';
-      });
+    });
   }
 
   updateBuilds() {

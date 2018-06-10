@@ -1,5 +1,5 @@
 import * as express from 'express';
-import Axios, {AxiosInstance} from 'axios';
+import Axios, {AxiosInstance, AxiosResponse} from 'axios';
 import StringUtils from '../util/StringUtils';
 import '../util/ArrayUtils';
 
@@ -17,15 +17,24 @@ export default class GitLabController {
         router.get('/projects', (req, res) => gitLabController.projects(req, res));
         router.get('/projects/:projectId/pipelines', (req, res) => gitLabController.projectPipelines(req, res));
         router.get('/projects/:projectId/pipelines/:pipelineId', (req, res) => gitLabController.pipeline(req, res));
+        router.get('/projects/:projectId/commits', (req, res) => gitLabController.commits(req, res));
+        router.get('/projects/:projectId/commitSummary', (req, res) => gitLabController.commitSummary(req, res));
+        router.get('/commitSummary', (res, req) => gitLabController.commitSummary(res, req));
         app.use('/gitlab', router);
     }
 
-    private static throwIfBadResponse(responses) {
-        const max = responses.max(r => r.status);
+    private static throwIfBadResponse(responses: AxiosResponse<any>[] | AxiosResponse<any>) {
+        let max: AxiosResponse<any>;
+        if (Array.isArray(responses)) {
+            max = responses.max(r => r.status);
+        } else {
+            max = responses;
+        }
+
         if (max.status >= 300) {
-            const message = 'Got response ' + max.status + ' from project ' + max.name;
+            const message = 'Got response ' + max.status + ' from project ' + max.data.name;
             console.log('Max status: ', message);
-            throw new Error(message );
+            throw new Error(message);
         }
     }
 
@@ -60,21 +69,32 @@ export default class GitLabController {
 
         const urls = this.getUrls(users, groups, projects);
 
-        return Promise.all(urls.map(projectUrl => this.axios.get(projectUrl)))
-            .then(responses => {
-                console.log( responses );
-                GitLabController.throwIfBadResponse(responses);
+        return Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)))
+            .then(projectInfosList => {
+                const projectInfos: any[] = projectInfosList.flatMap(v => v);
+                console.log(`Retrieved ${projectInfos.length} projects`);
 
-                const projectInfos = responses.flatMap(v => v.data);
-                console.log( `Retrieved ${projectInfos.length} projects`);
-
-                res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify(projectInfos));
+                Promise.all(projectInfos.map(projectInfo =>
+                    this.commitSummaryForProject(projectInfo.id).then(summary => {
+                        projectInfo.commitSummary = summary;
+                        return projectInfo;
+                    })))
+                    .then(infos => {
+                        res.setHeader('Content-Type', 'application/json');
+                        res.send(JSON.stringify(infos));
+                    });
             })
-            .catch( error => {
+            .catch(error => {
                 res.status(500);
                 res.send(error.toString());
             });
+    }
+
+    private getProjectList(projectListUrl): Promise<any> {
+        return this.axios.get(projectListUrl).then(result => {
+            GitLabController.throwIfBadResponse(result);
+            return result.data;
+        });
     }
 
     private getUrls(users: string[], groups: string[], projects: string[]) {
@@ -90,7 +110,7 @@ export default class GitLabController {
         }
     }
 
-    private projectPipelines(req: express.Request, res: express.Response) {
+    private projectPipelines(req: express.Request, res: express.Response): Promise<any> {
         const projectId = req.params.projectId;
         const url = `/projects/${projectId}/pipelines`;
         return this.axios.get(url)
@@ -100,7 +120,7 @@ export default class GitLabController {
             .catch(() => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
     }
 
-    private pipeline(req: express.Request, res: express.Response) {
+    private pipeline(req: express.Request, res: express.Response): Promise<any> {
         const projectId = req.params.projectId;
         const pipelineId = req.params.pipelineId;
         const url = `/projects/${projectId}/pipelines/${pipelineId}`;
@@ -109,5 +129,43 @@ export default class GitLabController {
                 res.send(response.data);
             })
             .catch(() => res.send(`Are you sure ${projectId} and ${pipelineId} exist? I could not find it. That is a 404.`));
+    }
+
+    private commits(req: express.Request, res: express.Response): Promise<any> {
+        const projectId = req.params.projectId;
+        return this.getCommits(projectId).then((commits) => res.send(commits.data))
+            .catch((err) => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
+    }
+
+    private getCommits(projectId: string) {
+        const url = `/projects/${projectId}/repository/commits?all=yes`;
+        return this.axios.get(url);
+    }
+
+    private commitSummary(req: express.Request, res: express.Response) {
+        const projectId = req.params.projectId;
+        return this.commitSummaryForProject(projectId).then(summary => res.send(summary))
+            .catch(() => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
+    }
+
+    private commitSummaryForProject(projectId: string) {
+        const semanticCounts = {};
+        return this.getCommits(projectId).then((commits) => {
+            const allowedValues = ['chore', 'fix', 'docs', 'refactor', 'style', 'localize', 'test', 'feat'];
+            const regex = new RegExp('^(.*):');
+
+            allowedValues.forEach(v => semanticCounts[v] = 0);
+
+            for (const commit of commits.data) {
+                const message = commit.message;
+                const matches = regex.exec(message);
+
+                if (matches && allowedValues.includes(matches[1].trim())) {
+                    semanticCounts[matches[1].trim()]++;
+                }
+            }
+
+            return semanticCounts;
+        });
     }
 }

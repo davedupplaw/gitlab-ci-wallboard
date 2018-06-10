@@ -12,8 +12,11 @@
         </app-build-card>
       </app-card>
     </ng-container>
-    <!-- app-card status="success">
-      <app-chart-card></app-chart-card>
-    </app-card -->
+  </div>
+
+  <div class="cards">
+    <app-card status="success">
+      <app-chart-card [data]="commitSummary"></app-chart-card>
+    </app-card>
   </div>
 </div>

@@ -1,6 +1,6 @@
 interface Array<T> {
     flatMap<E>(callback: (t: T) => Array<E>): Array<E>;
-    max<E>(selector: (t: T) => E): Array<T>;
+    max<E>(selector: (t: T) => E): T;
 }
 
 Object.defineProperty(Array.prototype, 'flatMap', {
