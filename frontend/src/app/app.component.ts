@@ -31,6 +31,7 @@ export class AppComponent implements OnInit {
 
   private axios: any;
   private titleTimer: NodeJS.Timer;
+  private favicon: HTMLLinkElement;
 
   constructor() {
   }
@@ -58,6 +59,7 @@ export class AppComponent implements OnInit {
     this.token = AppComponent.getParam('token');
     this.param_projects = 'davedupplaw/group-bells'; // this.getParam('projects');
     this.param_ref = AppComponent.getParam('ref');
+    this.favicon = document.querySelector('#favicon');
 
     this.update();
 
@@ -128,16 +130,21 @@ export class AppComponent implements OnInit {
 
             const hasFailedBuild = filteredResponses.some((r: any) => r.status === 'failed');
             if (hasFailedBuild) {
-              this.titleTimer = setInterval(() =>
-                document.title = document.title.startsWith(this.failTitle) ? this.okTitle : this.failTitle, 1000);
+              this.titleTimer = setInterval(() => {
+                const showingFailure = document.title.startsWith(this.failTitle);
+                document.title = showingFailure ? this.failTitle : this.okTitle;
+                this.favicon.href = showingFailure ? '/favicon-alert.ico' : '/favicon.ico';
+              }, 1000);
             } else if (this.titleTimer) {
               clearInterval(this.titleTimer);
+              document.title = this.okTitle;
+              this.favicon.href = '/favicon.ico';
             }
           });
       }).catch(error => {
-      console.error(error);
-      this.loading = false;
-      this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';
+        console.error(error);
+        this.loading = false;
+        this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';
     });
   }
 
