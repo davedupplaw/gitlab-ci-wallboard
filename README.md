@@ -105,4 +105,4 @@ See the [Trello Board][trello]
 [gitlab-ci]: https://about.gitlab.com/gitlab-ci/
 [original-github]: https://github.com/TheoTsatsos/gitlab-ci-wallboard
 [trello]: https://trello.com/b/v667U5fY/gitlab-ci-wallboard
-[example]: gitlab-ci-monitor-example.png
+[example]: gitlab-ci-wallboard-example.png
