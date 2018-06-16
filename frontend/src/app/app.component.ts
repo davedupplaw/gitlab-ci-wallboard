@@ -26,7 +26,11 @@ export class AppComponent implements OnInit {
   private buildMap: Map<number, any> = new Map();
   private commitSummary: CommitSummary = new CommitSummary();
 
+  private okTitle = 'GitLab Builds';
+  private failTitle = 'FAILED BUILD';
+
   private axios: any;
+  private titleTimer: NodeJS.Timer;
 
   constructor() {
   }
@@ -115,13 +119,25 @@ export class AppComponent implements OnInit {
     const url = '/projects';
     this.axios.get(url)
       .then(projectsResponse => {
-        projectsResponse.data.forEach( project => this.commitSummary = this.commitSummary.add( project.commitSummary ));
+        projectsResponse.data.forEach(project => this.commitSummary = this.commitSummary.add(project.commitSummary));
         return Promise.all(projectsResponse.data.map(project => this.fetchPipelines(project)))
-          .then(() => this.loading = false);
+          .then((responses) => {
+            this.loading = false;
+
+            const filteredResponses = responses.filter(r => typeof r === 'object');
+
+            const hasFailedBuild = filteredResponses.some((r: any) => r.status === 'failed');
+            if (hasFailedBuild) {
+              this.titleTimer = setInterval(() =>
+                document.title = document.title.startsWith(this.failTitle) ? this.okTitle : this.failTitle, 1000);
+            } else if (this.titleTimer) {
+              clearInterval(this.titleTimer);
+            }
+          });
       }).catch(error => {
-        console.error(error);
-        this.loading = false;
-        this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';
+      console.error(error);
+      this.loading = false;
+      this.errorMessage = 'Error retrieving projects. Check your token and your GitLab host configuration.';
     });
   }
 
@@ -133,7 +149,7 @@ export class AppComponent implements OnInit {
     if (project && project.id) {
       return this.axios.get(`/projects/${project.id}/pipelines`)
         .then(pipelineResponse => this.getLastPipelineInformation(pipelineResponse, project))
-        .catch(() => this.failedProjects.push(project));
+        .catch((e) => this.failedProjects.push(project));
     }
   }
 
@@ -172,6 +188,8 @@ export class AppComponent implements OnInit {
           return a.project.localeCompare(b.project);
         }
       });
+
+      return pipelineResponse;
     }
   }
 }
