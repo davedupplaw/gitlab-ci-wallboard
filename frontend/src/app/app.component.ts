@@ -30,8 +30,8 @@ export class AppComponent implements OnInit {
   private failTitle = 'FAILED BUILD';
 
   private axios: any;
-  private titleTimer: NodeJS.Timer;
   private favicon: HTMLLinkElement;
+  private titleTimer: number;
 
   constructor() {
   }
@@ -130,7 +130,7 @@ export class AppComponent implements OnInit {
 
             const hasFailedBuild = filteredResponses.some((r: any) => r.status === 'failed');
             if (hasFailedBuild) {
-              this.titleTimer = setInterval(() => {
+              this.titleTimer = window.setInterval(() => {
                 const showingFailure = document.title.startsWith(this.failTitle);
                 document.title = showingFailure ? this.failTitle : this.okTitle;
                 this.favicon.href = showingFailure ? '/favicon-alert.ico' : '/favicon.ico';
@@ -156,7 +156,7 @@ export class AppComponent implements OnInit {
     if (project && project.id) {
       return this.axios.get(`/projects/${project.id}/pipelines`)
         .then(pipelineResponse => this.getLastPipelineInformation(pipelineResponse, project))
-        .catch((e) => this.failedProjects.push(project));
+        .catch(() => this.failedProjects.push(project));
     }
   }
 
