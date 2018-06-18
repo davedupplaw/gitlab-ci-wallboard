@@ -1,7 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import * as moment from 'moment';
-import Axios from 'axios';
+import Axios, {AxiosResponse} from 'axios';
 import CommitSummary from './CommitSummary';
+import {FrontendConfig} from '../../../shared/FrontendConfig';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ export class AppComponent implements OnInit {
   public loading = false;
   public invalidConfig = false;
   public errorMessage: string;
+  public feConfig: FrontendConfig = {};
 
   private gitlab: string;
   private token: string;
@@ -77,6 +79,12 @@ export class AppComponent implements OnInit {
     }, 60000);
   }
 
+  updateConfig() {
+    this.axios.get('/config/frontend').then( (config: AxiosResponse<FrontendConfig>) => {
+      this.feConfig = config.data;
+    });
+  }
+
   update() {
     if (!this.param_projects) {
       this.errorMessage = 'No projects supplied.';
@@ -110,15 +118,17 @@ export class AppComponent implements OnInit {
 
   setupDefaults() {
     this.axios = Axios.create({
-      baseURL: `${window.location.protocol}//${window.location.host}/gitlab`,
+      baseURL: `${window.location.protocol}//${window.location.host}`,
       validateStatus: status => status < 500
     });
+
+    this.updateConfig();  // async
   }
 
   fetchProjects() {
     this.loading = true;
 
-    const url = '/projects';
+    const url = '/gitlab/projects';
     this.axios.get(url)
       .then(projectsResponse => {
         projectsResponse.data.forEach(project => this.commitSummary = this.commitSummary.add(project.commitSummary));
@@ -154,7 +164,7 @@ export class AppComponent implements OnInit {
 
   fetchPipelines(project) {
     if (project && project.id) {
-      return this.axios.get(`/projects/${project.id}/pipelines`)
+      return this.axios.get(`/gitlab/projects/${project.id}/pipelines`)
         .then(pipelineResponse => this.getLastPipelineInformation(pipelineResponse, project))
         .catch(() => this.failedProjects.push(project));
     }
@@ -163,7 +173,7 @@ export class AppComponent implements OnInit {
   private getLastPipelineInformation(allPipelinesResponse, project) {
     if (allPipelinesResponse.data && project.id) {
       const lastPipelineId = allPipelinesResponse.data[0].id;
-      const url = `/projects/${project.id}/pipelines/${lastPipelineId}`;
+      const url = `/gitlab/projects/${project.id}/pipelines/${lastPipelineId}`;
       console.log(url);
       return this.axios.get(url)
         .then(pipelineResponse => this.storeBuildInformation(pipelineResponse.data, project))

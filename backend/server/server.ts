@@ -9,6 +9,7 @@ import * as cors from 'cors';
 
 import IndexController from './controllers/IndexController';
 import GitLabController from './controllers/GitLabController';
+import ConfigurationController from './controllers/ConfigurationController';
 
 export default class Server {
     private readonly _app: Application;
@@ -87,6 +88,7 @@ export default class Server {
 
         IndexController.register(this._app);
         GitLabController.register(this._app);
+        ConfigurationController.register(this._app);
 
         this._app.use('/', router);
     }

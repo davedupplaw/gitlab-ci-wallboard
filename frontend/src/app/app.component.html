@@ -15,7 +15,7 @@
   </div>
 
   <div class="cards">
-    <app-card status="success">
+    <app-card status="success" *ngIf="feConfig && feConfig.showSemanticsCard">
       <app-chart-card [data]="commitSummary"></app-chart-card>
     </app-card>
   </div>
