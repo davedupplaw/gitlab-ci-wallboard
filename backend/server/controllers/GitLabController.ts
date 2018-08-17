@@ -68,6 +68,7 @@ export default class GitLabController {
         const users = StringUtils.parseCSV(this.userWhitelistCSV);
 
         const urls = this.getUrls(users, groups, projects);
+        console.log(urls);
 
         return Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)))
             .then(projectInfosList => {
@@ -94,6 +95,9 @@ export default class GitLabController {
         return this.axios.get(projectListUrl).then(result => {
             GitLabController.throwIfBadResponse(result);
             return result.data;
+        }).catch( err => {
+            console.log(err);
+            console.log(`Error retrieving ${projectListUrl}`);
         });
     }
 
