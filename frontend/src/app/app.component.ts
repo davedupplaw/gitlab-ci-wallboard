@@ -144,7 +144,7 @@ export class AppComponent implements OnInit {
               this.titleTimer = window.setInterval(() => {
                 const showingFailure = document.title.startsWith(this.failTitle);
                 document.title = showingFailure ? this.okTitle : this.failTitle;
-                this.favicon.href = showingFailure ? '/favicon-alert.ico' : '/favicon.ico';
+                this.favicon.href = showingFailure ? '/favicon.ico' : '/favicon-alert.ico';
               }, 1000);
             } else if (this.titleTimer) {
               clearInterval(this.titleTimer);
