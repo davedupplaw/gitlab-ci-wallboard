@@ -139,10 +139,11 @@ export class AppComponent implements OnInit {
             const filteredResponses = responses.filter(r => typeof r === 'object');
 
             const hasFailedBuild = filteredResponses.some((r: any) => r.status === 'failed');
+
             if (hasFailedBuild) {
               this.titleTimer = window.setInterval(() => {
                 const showingFailure = document.title.startsWith(this.failTitle);
-                document.title = showingFailure ? this.failTitle : this.okTitle;
+                document.title = showingFailure ? this.okTitle : this.failTitle;
                 this.favicon.href = showingFailure ? '/favicon-alert.ico' : '/favicon.ico';
               }, 1000);
             } else if (this.titleTimer) {
