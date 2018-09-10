@@ -5,11 +5,12 @@ import '../util/ArrayUtils';
 
 export default class GitLabController {
     private axios: AxiosInstance;
-    private gitlab: string;
-    private token: string;
-    private projectWhitelistCSV: string;
-    private groupWhitelistCSV: string;
-    private userWhitelistCSV: string;
+
+    private readonly gitlab: string;
+    private readonly token: string;
+    private readonly projectWhitelistCSV: string;
+    private readonly groupWhitelistCSV: string;
+    private readonly userWhitelistCSV: string;
 
     public static register(app: express.Application) {
         const gitLabController = new GitLabController();
@@ -66,6 +67,11 @@ export default class GitLabController {
         const projects = StringUtils.parseCSV(this.projectWhitelistCSV);
         const groups = StringUtils.parseCSV(this.groupWhitelistCSV);
         const users = StringUtils.parseCSV(this.userWhitelistCSV);
+
+        console.log('Getting URLS for:');
+        console.log(`  - projects: ${projects}`);
+        console.log(`  - groups  : ${groups}`);
+        console.log(`  - users   : ${users}`);
 
         const urls = this.getUrls(users, groups, projects);
         console.log(urls);
@@ -156,7 +162,7 @@ export default class GitLabController {
         const semanticCounts = {};
         return this.getCommits(projectId).then((commits) => {
             const allowedValues = ['chore', 'fix', 'docs', 'refactor', 'style', 'localize', 'test', 'feat'];
-            const regex = new RegExp('^(.*):');
+            const regex = new RegExp('^([^:\s]+)', 'gm');
 
             allowedValues.forEach(v => semanticCounts[v] = 0);
 
