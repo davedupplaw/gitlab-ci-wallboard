@@ -67,62 +67,7 @@ export default class SCMController {
 
     public projects(req: express.Request, res: express.Response) {
         const projects: Project[] = ProjectCacheFactory.getCache().getProjects();
-        res.send( projects );
-
-        // const projects = StringUtils.parseCSV(this.projectWhitelistCSV);
-        // const groups = StringUtils.parseCSV(this.groupWhitelistCSV);
-        // const users = StringUtils.parseCSV(this.userWhitelistCSV);
-        //
-        // console.log('Getting URLS for:');
-        // console.log(`  - projects: ${projects}`);
-        // console.log(`  - groups  : ${groups}`);
-        // console.log(`  - users   : ${users}`);
-        //
-        // const urls = this.getUrls(users, groups, projects);
-        // console.log(urls);
-        //
-        // return Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)))
-        //     .then(projectInfosList => {
-        //         const projectInfos: any[] = projectInfosList.flatMap(v => v);
-        //         console.log(`Retrieved ${projectInfos.length} projects`);
-        //
-        //         Promise.all(projectInfos.map(projectInfo =>
-        //             this.commitSummaryForProject(projectInfo.id).then(summary => {
-        //                 projectInfo.commitSummary = summary;
-        //                 return projectInfo;
-        //             })))
-        //             .then(infos => {
-        //                 res.setHeader('Content-Type', 'application/json');
-        //                 res.send(JSON.stringify(infos));
-        //             });
-        //     })
-        //     .catch(error => {
-        //         res.status(500);
-        //         res.send(error.toString());
-        //     });
-    }
-
-    private getProjectList(projectListUrl): Promise<any> {
-        return this.axios.get(projectListUrl).then(result => {
-            SCMController.throwIfBadResponse(result);
-            return result.data;
-        }).catch( err => {
-            console.log(err);
-            console.log(`Error retrieving ${projectListUrl}`);
-        });
-    }
-
-    private getUrls(users: string[], groups: string[], projects: string[]) {
-        const params = '?simple=true&per_page=100';
-        if (users.length > 0) {
-            return users.map(user => `/users/${user}/projects${params}`);
-        } else if (groups.length > 0) {
-            return groups.map(group => `/groups/${group}/projects${params}`);
-        } else if (projects.length > 0) {
-            return projects.map(project => `/projects/${project}${params}`);
-        } else {
-            return [`/projects${params}`];
-        }
+        res.send(projects);
     }
 
     private projectPipelines(req: express.Request, res: express.Response): Promise<any> {

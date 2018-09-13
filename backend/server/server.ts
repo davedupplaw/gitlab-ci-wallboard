@@ -133,6 +133,7 @@ export default class Server {
     }
 
     private updateProjectList() {
+        console.log( 'Updating projects...' );
         this._scmClients.forEach( client => {
             client.getProjects().then( projects => {
                 projects.forEach( project => {
@@ -141,6 +142,9 @@ export default class Server {
                 } );
             });
         });
+
+        // Update the project list again in 10 minutes
+        setInterval( () => this.updateProjectList(), 60 * 10 * 1000 );
     }
 
     private setupProject(client: SCMClient, project: Project) {
@@ -149,5 +153,9 @@ export default class Server {
                 project.commitSummary = summary;
                 return project;
             });
+
+        client.getLatestBuild(project.id).then( build => {
+            project.lastBuild = build;
+        });
     }
 }

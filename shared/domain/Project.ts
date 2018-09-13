@@ -1,21 +1,12 @@
-import CommitSummary from "./CommitSummary";
-
-export enum Status {
-    FAIL,
-    PASS,
-    BUILDING,
-    UNKNOWN
-}
+import CommitSummary from './CommitSummary';
+import Build from './Build';
 
 export default class Project {
     public id: string;
     public name: string;
     public url: string;
     public description: string;
-    public lastUpdate: string;
     public lastCommitBy: string;
-    public build: string;
-    public branch: string;
-    public status: Status = Status.UNKNOWN;
+    public lastBuild: Build;
     public commitSummary: CommitSummary;
 }

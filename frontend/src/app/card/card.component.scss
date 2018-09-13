@@ -9,23 +9,19 @@
     color: rgba(0,0,0,.4);
   }
 
-  &.success {
+  &.pass {
     background-color: #00AD68;
   }
 
-  &.failed {
+  &.fail {
     background-color: #E7484D;
   }
 
-  &.pending {
-    background-color: #e75e40;
-  }
-
-  &.running{
+  &.building {
     background-color: #2d9fd8;
   }
 
-  &.canceled{
-    background-color: #aaaaaa;
+  &.unknown {
+    background-color: #BBBBBB;
   }
 }

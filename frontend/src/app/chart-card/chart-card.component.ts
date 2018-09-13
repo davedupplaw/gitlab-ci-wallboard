@@ -1,9 +1,8 @@
 import {Component, ElementRef, Input, OnInit} from '@angular/core';
 import {Chart} from 'chart.js';
 
-import DataProvider from './DataProvider';
-import CommitSummary from '../CommitSummary';
 import {BehaviorSubject} from 'rxjs';
+import CommitSummary from '../../../../shared/domain/CommitSummary';
 
 @Component({
   selector: 'app-chart-card',

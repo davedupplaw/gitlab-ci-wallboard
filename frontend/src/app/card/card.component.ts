@@ -1,4 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {Status} from '../../../../shared/domain/Build';
 
 @Component({
   selector: 'app-card',
@@ -6,7 +7,16 @@ import {Component, Input, OnInit} from '@angular/core';
   styleUrls: ['./card.component.scss']
 })
 export class CardComponent implements OnInit {
-  @Input() public status: string;
+  public statusString: string;
+  @Input() public set status( value: Status ) {
+    console.log( 'Status received: ', value );
+    const str = Status[value];
+    if ( str ) {
+      this.statusString = str.toLowerCase();
+    } else {
+      this.statusString = 'unknown';
+    }
+  }
 
   constructor() {}
 

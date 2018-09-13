@@ -3,6 +3,7 @@ import Axios, {AxiosInstance, AxiosResponse} from 'axios';
 import {SCMClient} from './SCMClient';
 import Project from '../../../shared/domain/Project';
 import CommitSummary from '../../../shared/domain/CommitSummary';
+import Build, {Status} from '../../../shared/domain/Build';
 
 export default class GitLabClient implements SCMClient {
     private axios: AxiosInstance;
@@ -31,6 +32,20 @@ export default class GitLabClient implements SCMClient {
             const message = 'Got response ' + max.status + ' from project ' + max.data.name;
             console.log('Max status: ', message);
             throw new Error(message);
+        }
+    }
+
+    private static gitLabStatusToStatus(status: string ): Status {
+        switch ( status ) {
+            case 'running':
+            case 'pending':
+                return Status.BUILDING;
+            case 'success':
+                return Status.PASS;
+            case 'failed':
+                return Status.FAIL;
+            default:
+                return Status.UNKNOWN;
         }
     }
 
@@ -84,38 +99,6 @@ export default class GitLabClient implements SCMClient {
             });
     }
 
-    private getProjectList(projectListUrl): Promise<Project[]> {
-        return this.axios.get(projectListUrl).then(result => {
-            GitLabClient.throwIfBadResponse(result);
-
-            return result.data.map( projectFromGitLab => {
-                const project = new Project();
-                project.id = projectFromGitLab.id;
-                project.name = projectFromGitLab.name;
-                project.description = projectFromGitLab.description;
-                project.url = projectFromGitLab.web_url;
-                return project;
-            });
-
-        }).catch( err => {
-            console.log(err);
-            console.log(`Error retrieving ${projectListUrl}`);
-        });
-    }
-
-    private getUrls(users: string[], groups: string[], projects: string[]) {
-        const params = '?simple=true&per_page=100';
-        if (users.length > 0) {
-            return users.map(user => `/users/${user}/projects${params}`);
-        } else if (groups.length > 0) {
-            return groups.map(group => `/groups/${group}/projects${params}`);
-        } else if (projects.length > 0) {
-            return projects.map(project => `/projects/${project}${params}`);
-        } else {
-            return [`/projects${params}`];
-        }
-    }
-
     public compileCommitSummaryForProject(projectId: string): Promise<CommitSummary> {
         return this.getCommits(projectId).then((commits) => {
 
@@ -138,9 +121,68 @@ export default class GitLabClient implements SCMClient {
         });
     }
 
+    public getLatestBuild(projectId: string): Promise<Build> {
+        const url = `/projects/${projectId}/pipelines?order_by=id&sort=desc`;
+        return this.axios.get(url)
+            .then(response => {
+                if( response.data.length > 0 ) {
+                    return this.getPipelineStatus(projectId, response.data[0].id);
+                } else {
+                    console.log( `Project ${projectId} has no builds.` );
+                }
+            })
+            .catch((error) => console.log(error) );
+    }
+
+    private getPipelineStatus(projectId: string, pipelineId: string): Promise<Build> {
+        const url = `/projects/${projectId}/pipelines/${pipelineId}`;
+        return this.axios.get(url)
+            .then(response => {
+                const build = new Build();
+                build.status = GitLabClient.gitLabStatusToStatus( response.data.status );
+                build.id = response.data.id;
+                build.branch = response.data.ref;
+                build.timeStarted = response.data.created_at;
+                return build;
+            })
+            .catch(() => console.error(`Are you sure ${projectId} and ${pipelineId} exist? I could not find it. That is a 404.`));
+    }
+
+    private getProjectList(projectListUrl): Promise<Project[]> {
+        return this.axios.get(projectListUrl).then(result => {
+            GitLabClient.throwIfBadResponse(result);
+
+            return result.data.map(projectFromGitLab => {
+                const project = new Project();
+                project.id = projectFromGitLab.id;
+                project.name = projectFromGitLab.name;
+                project.description = projectFromGitLab.description;
+                project.url = projectFromGitLab.web_url;
+                return project;
+            });
+
+        }).catch(err => {
+            console.log(err);
+            console.log(`Error retrieving ${projectListUrl}`);
+        });
+    }
+
+    private getUrls(users: string[], groups: string[], projects: string[]) {
+        const params = '?simple=true&per_page=100';
+        if (users.length > 0) {
+            return users.map(user => `/users/${user}/projects${params}`);
+        } else if (groups.length > 0) {
+            return groups.map(group => `/groups/${group}/projects${params}`);
+        } else if (projects.length > 0) {
+            return projects.map(project => `/projects/${project}${params}`);
+        } else {
+            return [`/projects${params}`];
+        }
+    }
+
     private getCommits(projectId: string) {
         const url = `/projects/${projectId}/repository/commits?all=yes`;
-        console.log( url );
+        console.log(url);
         return this.axios.get(url);
     }
 }

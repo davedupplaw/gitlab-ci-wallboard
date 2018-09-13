@@ -5,10 +5,10 @@
   <app-invalid-config *ngIf="invalidConfig"></app-invalid-config>
 
   <div class="cards">
-    <ng-container *ngFor="let build of getBuilds()">
-      <app-card [status]="build.status">
-        <app-build-card [build]="build"
-                        link="https://{{gitlab}}/{{build.project_path}}">
+    <ng-container *ngFor="let project of getProjects()">
+      <app-card [status]="project.lastBuild ? project.lastBuild.status : UNKNOWN">
+        <app-build-card [build]="project"
+                        link="https://{{gitlab}}/{{project.url}}">
         </app-build-card>
       </app-card>
     </ng-container>
