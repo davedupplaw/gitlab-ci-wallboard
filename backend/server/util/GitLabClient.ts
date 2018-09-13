@@ -1,8 +1,8 @@
-import StringUtils from "./StringUtils";
-import Axios, {AxiosInstance, AxiosResponse} from "axios";
-import {SCMClient} from "./SCMClient";
-import Project from "../../../shared/domain/Project";
-import CommitSummary from "../../../shared/domain/CommitSummary";
+import StringUtils from './StringUtils';
+import Axios, {AxiosInstance, AxiosResponse} from 'axios';
+import {SCMClient} from './SCMClient';
+import Project from '../../../shared/domain/Project';
+import CommitSummary from '../../../shared/domain/CommitSummary';
 
 export default class GitLabClient implements SCMClient {
     private axios: AxiosInstance;
@@ -116,7 +116,7 @@ export default class GitLabClient implements SCMClient {
         }
     }
 
-    public compileCommitSummaryForProject(projectId: string) : Promise<CommitSummary> {
+    public compileCommitSummaryForProject(projectId: string): Promise<CommitSummary> {
         return this.getCommits(projectId).then((commits) => {
 
             const semanticCounts: CommitSummary = new CommitSummary();

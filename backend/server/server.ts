@@ -10,10 +10,10 @@ import * as cors from 'cors';
 import IndexController from './controllers/IndexController';
 import SCMController from './controllers/SCMController';
 import ConfigurationController from './controllers/ConfigurationController';
-import GitLabClient from "./util/GitLabClient";
-import {SCMClient} from "./util/SCMClient";
-import ProjectCacheFactory from "./util/ProjectCacheFactory";
-import Project from "../../shared/domain/Project";
+import GitLabClient from './util/GitLabClient';
+import {SCMClient} from './util/SCMClient';
+import ProjectCacheFactory from './util/ProjectCacheFactory';
+import Project from '../../shared/domain/Project';
 
 export default class Server {
     private readonly _app: Application;
