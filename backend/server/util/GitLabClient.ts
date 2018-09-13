@@ -77,24 +77,26 @@ export default class GitLabClient implements SCMClient {
 
         return Promise.all( urls.map(projectListUrl => this.getProjectList(projectListUrl)) )
             .then(projectInfosList => {
-                return projectInfosList.flatMap(v => [v]);
+                return projectInfosList.flatMap(v => v);
             })
             .catch(error => {
                 console.error(error);
             });
     }
 
-    private getProjectList(projectListUrl): Promise<Project> {
+    private getProjectList(projectListUrl): Promise<Project[]> {
         return this.axios.get(projectListUrl).then(result => {
             GitLabClient.throwIfBadResponse(result);
 
-            const project = new Project();
-            project.id = result.data.id;
-            project.name = result.data.name;
-            project.description = result.data.description;
-            project.url = result.data.web_url;
+            return result.data.map( projectFromGitLab => {
+                const project = new Project();
+                project.id = projectFromGitLab.id;
+                project.name = projectFromGitLab.name;
+                project.description = projectFromGitLab.description;
+                project.url = projectFromGitLab.web_url;
+                return project;
+            });
 
-            return project;
         }).catch( err => {
             console.log(err);
             console.log(`Error retrieving ${projectListUrl}`);
