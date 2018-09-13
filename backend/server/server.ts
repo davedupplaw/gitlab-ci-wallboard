@@ -1,23 +1,30 @@
 import * as express from 'express';
+import {Application} from 'express';
 import * as logger from 'morgan';
 import * as bodyParser from 'body-parser';
 import * as root from 'app-root-path';
 import * as cookieParser from 'cookie-parser';
 import * as http from 'http';
-import {Application} from 'express';
 import * as cors from 'cors';
 
 import IndexController from './controllers/IndexController';
-import GitLabController from './controllers/GitLabController';
+import SCMController from './controllers/SCMController';
 import ConfigurationController from './controllers/ConfigurationController';
+import GitLabClient from "./util/GitLabClient";
+import {SCMClient} from "./util/SCMClient";
+import ProjectCacheFactory from "./util/ProjectCacheFactory";
+import Project from "../../shared/domain/Project";
 
 export default class Server {
     private readonly _app: Application;
+    private readonly _scmClients: SCMClient[] = [];
     private _server: http.Server;
 
     constructor(app: Application) {
         this._app = app;
         this._app.use(cors());
+
+        this._scmClients.push(new GitLabClient());
 
         this.viewEngineSetup();
         this.loggerSetup();
@@ -26,6 +33,8 @@ export default class Server {
 
         this.registerErrorHandler();
         this.registerNotFoundHandler();
+
+        this.updateProjectList();
     }
 
     get app() {
@@ -87,7 +96,7 @@ export default class Server {
         const router = express.Router();
 
         IndexController.register(this._app);
-        GitLabController.register(this._app);
+        SCMController.register(this._app);
         ConfigurationController.register(this._app);
 
         this._app.use('/', router);
@@ -121,5 +130,24 @@ export default class Server {
                 error: {}
             });
         });
+    }
+
+    private updateProjectList() {
+        this._scmClients.forEach( client => {
+            client.getProjects().then( projects => {
+                projects.forEach( project => {
+                    ProjectCacheFactory.getCache().update( project );
+                    this.setupProject( client, project );
+                } );
+            });
+        });
+    }
+
+    private setupProject(client: SCMClient, project: Project) {
+        client.compileCommitSummaryForProject(project.id)
+            .then(summary => {
+                project.commitSummary = summary;
+                return project;
+            });
     }
 }

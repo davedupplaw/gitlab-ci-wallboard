@@ -2,8 +2,10 @@ import * as express from 'express';
 import Axios, {AxiosInstance, AxiosResponse} from 'axios';
 import StringUtils from '../util/StringUtils';
 import '../util/ArrayUtils';
+import ProjectCacheFactory from "../util/ProjectCacheFactory";
+import Project from "../../../shared/domain/Project";
 
-export default class GitLabController {
+export default class SCMController {
     private axios: AxiosInstance;
 
     private readonly gitlab: string;
@@ -13,14 +15,14 @@ export default class GitLabController {
     private readonly userWhitelistCSV: string;
 
     public static register(app: express.Application) {
-        const gitLabController = new GitLabController();
+        const scmController = new SCMController();
         const router = express.Router();
-        router.get('/projects', (req, res) => gitLabController.projects(req, res));
-        router.get('/projects/:projectId/pipelines', (req, res) => gitLabController.projectPipelines(req, res));
-        router.get('/projects/:projectId/pipelines/:pipelineId', (req, res) => gitLabController.pipeline(req, res));
-        router.get('/projects/:projectId/commits', (req, res) => gitLabController.commits(req, res));
-        router.get('/projects/:projectId/commitSummary', (req, res) => gitLabController.commitSummary(req, res));
-        router.get('/commitSummary', (res, req) => gitLabController.commitSummary(res, req));
+        router.get('/projects', (req, res) => scmController.projects(req, res));
+        router.get('/projects/:projectId/pipelines', (req, res) => scmController.projectPipelines(req, res));
+        router.get('/projects/:projectId/pipelines/:pipelineId', (req, res) => scmController.pipeline(req, res));
+        router.get('/projects/:projectId/commits', (req, res) => scmController.commits(req, res));
+        router.get('/projects/:projectId/commitSummary', (req, res) => scmController.commitSummary(req, res));
+        router.get('/commitSummary', (res, req) => scmController.commitSummary(res, req));
         app.use('/gitlab', router);
     }
 
@@ -64,42 +66,45 @@ export default class GitLabController {
     }
 
     public projects(req: express.Request, res: express.Response) {
-        const projects = StringUtils.parseCSV(this.projectWhitelistCSV);
-        const groups = StringUtils.parseCSV(this.groupWhitelistCSV);
-        const users = StringUtils.parseCSV(this.userWhitelistCSV);
+        const projects: Project[] = ProjectCacheFactory.getCache().getProjects();
+        res.send( projects );
 
-        console.log('Getting URLS for:');
-        console.log(`  - projects: ${projects}`);
-        console.log(`  - groups  : ${groups}`);
-        console.log(`  - users   : ${users}`);
-
-        const urls = this.getUrls(users, groups, projects);
-        console.log(urls);
-
-        return Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)))
-            .then(projectInfosList => {
-                const projectInfos: any[] = projectInfosList.flatMap(v => v);
-                console.log(`Retrieved ${projectInfos.length} projects`);
-
-                Promise.all(projectInfos.map(projectInfo =>
-                    this.commitSummaryForProject(projectInfo.id).then(summary => {
-                        projectInfo.commitSummary = summary;
-                        return projectInfo;
-                    })))
-                    .then(infos => {
-                        res.setHeader('Content-Type', 'application/json');
-                        res.send(JSON.stringify(infos));
-                    });
-            })
-            .catch(error => {
-                res.status(500);
-                res.send(error.toString());
-            });
+        // const projects = StringUtils.parseCSV(this.projectWhitelistCSV);
+        // const groups = StringUtils.parseCSV(this.groupWhitelistCSV);
+        // const users = StringUtils.parseCSV(this.userWhitelistCSV);
+        //
+        // console.log('Getting URLS for:');
+        // console.log(`  - projects: ${projects}`);
+        // console.log(`  - groups  : ${groups}`);
+        // console.log(`  - users   : ${users}`);
+        //
+        // const urls = this.getUrls(users, groups, projects);
+        // console.log(urls);
+        //
+        // return Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)))
+        //     .then(projectInfosList => {
+        //         const projectInfos: any[] = projectInfosList.flatMap(v => v);
+        //         console.log(`Retrieved ${projectInfos.length} projects`);
+        //
+        //         Promise.all(projectInfos.map(projectInfo =>
+        //             this.commitSummaryForProject(projectInfo.id).then(summary => {
+        //                 projectInfo.commitSummary = summary;
+        //                 return projectInfo;
+        //             })))
+        //             .then(infos => {
+        //                 res.setHeader('Content-Type', 'application/json');
+        //                 res.send(JSON.stringify(infos));
+        //             });
+        //     })
+        //     .catch(error => {
+        //         res.status(500);
+        //         res.send(error.toString());
+        //     });
     }
 
     private getProjectList(projectListUrl): Promise<any> {
         return this.axios.get(projectListUrl).then(result => {
-            GitLabController.throwIfBadResponse(result);
+            SCMController.throwIfBadResponse(result);
             return result.data;
         }).catch( err => {
             console.log(err);
