@@ -12,5 +12,11 @@
       clear: both;
     }
   }
+
+  app-loader {
+    position: fixed;
+    top: 50px;
+    left: 50%;
+  }
 }
 

@@ -44,6 +44,9 @@ export class AppComponent implements OnInit {
 
     this.setupDefaults();
     this.fetchProjects();
+
+    // Update statuses every 10 seconds
+    setInterval( () => this.fetchProjects(), 10 * 1000 );
   }
 
   updateConfig() {
@@ -80,6 +83,7 @@ export class AppComponent implements OnInit {
   }
 
   private updateCommitSummary(projectsResponse: AxiosResponse<Project[]>) {
+    this.commitSummary = new CommitSummary();
     projectsResponse.data.forEach(project =>
       this.commitSummary = this.commitSummary.add(project.commitSummary)
     );
@@ -115,19 +119,22 @@ export class AppComponent implements OnInit {
     const hasFailedBuild = projectsResponse.data.some(project => project.lastBuild && project.lastBuild.status === Status.FAIL);
 
     if (hasFailedBuild) {
-      // Start the page title and favicon flashing between
-      // normal and alert state, to help alert the dev that
-      // something is borked
-      this.titleTimer = window.setInterval(() => {
-        const showingFailure = document.title.startsWith(this.failTitle);
-        document.title = showingFailure ? this.okTitle : this.failTitle;
-        this.favicon.href = showingFailure ? '/favicon.ico' : '/favicon-alert.ico';
-      }, 1000);
-
+      if ( !this.titleTimer ) {
+        // Start the page title and favicon flashing between
+        // normal and alert state, to help alert the dev that
+        // something is borked
+        this.titleTimer = window.setInterval(() => {
+          const showingFailure = document.title.startsWith(this.failTitle);
+          document.title = showingFailure ? this.okTitle : this.failTitle;
+          this.favicon.href = showingFailure ? '/favicon.ico' : '/favicon-alert.ico';
+        }, 1000);
+      }
     } else if (this.titleTimer) {
 
       // No broken builds?  Set the title and favicon to normal
       clearInterval(this.titleTimer);
+      this.titleTimer = undefined;
+
       document.title = this.okTitle;
       this.favicon.href = '/favicon.ico';
     }
