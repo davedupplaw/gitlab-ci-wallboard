@@ -35,6 +35,9 @@ export default class Server {
         this.registerNotFoundHandler();
 
         this.updateProjectList();
+
+        // Update the project list every 10 minutes
+        setInterval( () => this.updateProjectList(), 60 * 10 * 1000 );
     }
 
     get app() {
@@ -142,9 +145,6 @@ export default class Server {
                 } );
             });
         });
-
-        // Update the project list again in 10 minutes
-        setInterval( () => this.updateProjectList(), 60 * 10 * 1000 );
     }
 
     private setupProject(client: SCMClient, project: Project) {
@@ -155,6 +155,7 @@ export default class Server {
             });
 
         client.getLatestBuild(project.id).then( build => {
+            console.log(`Retrieved latest build for ${project.name} -> ${project.lastBuild.status}`);
             project.lastBuild = build;
         });
     }
