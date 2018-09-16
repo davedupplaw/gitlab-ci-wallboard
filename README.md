@@ -50,6 +50,8 @@ Here are the configuration options that can be passed in the environment:
 | GCIWB_GROUPS  | The groups to use to get projects from (csv) (mutually exclusive with GCIWB_USERS) |
 | GCIWB_USERS   | The users to use get projects from (csv) (mutually exclusive with GCIWB_GROUPS) |
 | GCIWB_PROJECTS | The list of projects to use (csv) |
+| GCIWB_INCLUDE_NO_BUILDS | Whether to include projects without a build |
+| GCIWB_SHOW_SEMANTICS | Whether to show the semantic commit summary card |
 
 ## Development
 
