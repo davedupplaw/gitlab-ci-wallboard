@@ -16,6 +16,7 @@ import ProjectCacheFactory from './util/ProjectCacheFactory';
 import Project from '../../shared/domain/Project';
 import {Status} from '../../shared/domain/Build';
 import CommitSummary from '../../shared/domain/CommitSummary';
+import moment = require('moment');
 
 export default class Server {
     private readonly _app: Application;
@@ -174,6 +175,7 @@ export default class Server {
             console.log(`Retrieved latest build for ${project.name} -> ${
                 build ? Status[build.status] : 'no build'}`);
             project.lastBuild = build;
+            project.lastBuild.timeStartedFromNow = moment(project.lastBuild.timeStarted).fromNow();
         });
     }
 }
