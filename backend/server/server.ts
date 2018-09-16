@@ -14,10 +14,12 @@ import GitLabClient from './util/GitLabClient';
 import {SCMClient} from './util/SCMClient';
 import ProjectCacheFactory from './util/ProjectCacheFactory';
 import Project from '../../shared/domain/Project';
+import {Status} from '../../shared/domain/Build';
 
 export default class Server {
     private readonly _app: Application;
     private readonly _scmClients: SCMClient[] = [];
+    private _timerHandles: Map<string, NodeJS.Timer> = new Map();
     private _server: http.Server;
 
     constructor(app: Application) {
@@ -154,8 +156,21 @@ export default class Server {
                 return project;
             });
 
-        client.getLatestBuild(project.id).then( build => {
-            console.log(`Retrieved latest build for ${project.name} -> ${project.lastBuild.status}`);
+        this.getProjectLatestBuild(client, project);
+
+        // If we already have a timer running for a specific project, we do
+        // not want to create a new one.
+        if ( !this._timerHandles.get(project.id) ) {
+            // This polling is in lieu of project hooks, which we'll add later
+            const timerHandle = setInterval(() => this.getProjectLatestBuild(client, project), 10 * 1000);
+            this._timerHandles.set( project.id, timerHandle );
+        }
+    }
+
+    private getProjectLatestBuild(client: SCMClient, project: Project) {
+        client.getLatestBuild(project.id).then(build => {
+            console.log(`Retrieved latest build for ${project.name} -> ${
+                build ? Status[build.status] : 'no build'}`);
             project.lastBuild = build;
         });
     }

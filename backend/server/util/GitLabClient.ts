@@ -125,10 +125,8 @@ export default class GitLabClient implements SCMClient {
         const url = `/projects/${projectId}/pipelines?order_by=id&sort=desc`;
         return this.axios.get(url)
             .then(response => {
-                if( response.data.length > 0 ) {
+                if ( response.data.length > 0 ) {
                     return this.getPipelineStatus(projectId, response.data[0].id);
-                } else {
-                    console.log( `Project ${projectId} has no builds.` );
                 }
             })
             .catch((error) => console.log(error) );
