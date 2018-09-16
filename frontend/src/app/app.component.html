@@ -5,7 +5,7 @@
   <app-invalid-config *ngIf="invalidConfig"></app-invalid-config>
 
   <div class="cards">
-    <ng-container *ngFor="let project of getProjects()">
+    <ng-container *ngFor="let project of projects">
       <app-card [status]="project.lastBuild ? project.lastBuild.status : UNKNOWN"
                 *ngIf="feConfig.showProjectsWithoutBuilds || project.lastBuild">
         <app-build-card [build]="project"

@@ -143,8 +143,8 @@ export default class Server {
         this._scmClients.forEach( client => {
             client.getProjects().then( projects => {
                 projects.forEach( project => {
-                    ProjectCacheFactory.getCache().update( project );
                     this.setupProject( client, project );
+                    ProjectCacheFactory.getCache().update( project );
                 } );
             });
         });

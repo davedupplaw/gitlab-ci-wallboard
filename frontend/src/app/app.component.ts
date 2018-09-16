@@ -17,8 +17,8 @@ export class AppComponent implements OnInit {
   public feConfig: FrontendConfig = {};
   public UNKNOWN = Status.UNKNOWN;
 
-  private projects: Project[] = [];
-  private commitSummary: CommitSummary = new CommitSummary();
+  public projects: Project[] = [];
+  public commitSummary: CommitSummary = new CommitSummary();
 
   private okTitle = 'GitLab Builds';
   private failTitle = 'FAILED BUILD';
