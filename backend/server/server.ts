@@ -15,6 +15,7 @@ import {SCMClient} from './util/SCMClient';
 import ProjectCacheFactory from './util/ProjectCacheFactory';
 import Project from '../../shared/domain/Project';
 import {Status} from '../../shared/domain/Build';
+import CommitSummary from '../../shared/domain/CommitSummary';
 
 export default class Server {
     private readonly _app: Application;
@@ -150,6 +151,7 @@ export default class Server {
     }
 
     private setupProject(client: SCMClient, project: Project) {
+        project.commitSummary = new CommitSummary();
         client.compileCommitSummaryForProject(project.id)
             .then(summary => {
                 project.commitSummary = summary;
