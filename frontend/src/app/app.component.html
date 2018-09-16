@@ -6,7 +6,8 @@
 
   <div class="cards">
     <ng-container *ngFor="let project of getProjects()">
-      <app-card [status]="project.lastBuild ? project.lastBuild.status : UNKNOWN">
+      <app-card [status]="project.lastBuild ? project.lastBuild.status : UNKNOWN"
+                *ngIf="feConfig.showProjectsWithoutBuilds || project.lastBuild">
         <app-build-card [build]="project"
                         link="https://{{gitlab}}/{{project.url}}">
         </app-build-card>
