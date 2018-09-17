@@ -175,7 +175,10 @@ export default class Server {
             console.log(`Retrieved latest build for ${project.name} -> ${
                 build ? Status[build.status] : 'no build'}`);
             project.lastBuild = build;
-            project.lastBuild.timeStartedFromNow = moment(project.lastBuild.timeStarted).fromNow();
+
+            if( project.lastBuild ) {
+                project.lastBuild.timeStartedFromNow = moment(project.lastBuild.timeStarted).fromNow();
+            }
         });
     }
 }
