@@ -14,6 +14,6 @@
   </span>
   <span class="calendar">
     <fa name="calendar"></fa>
-    {{ build.lastBuild.timeStartedFromNow }}
+    {{ build.lastBuild ? build.lastBuild.timeStartedFromNow : '-' }}
   </span>
 </div>
