@@ -1,4 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
+import CommitSummary from '../../../../shared/domain/CommitSummary';
 
 @Component({
   selector: 'app-build-card',
@@ -9,9 +10,54 @@ export class BuildCardComponent implements OnInit {
   @Input() public build: any;
   @Input() public link: string;
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit() {
   }
 
+  initials(name: string): string {
+    if ( name === '?' ) {
+      return name;
+    }
+
+    const initials = name.match(/\b\w/g) || [];
+    return ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+  }
+
+  semantics(message: string): string {
+    const labels = new CommitSummary().getDataLabels();
+
+    for (const label of labels) {
+      if (message.startsWith(label)) {
+        return label;
+      }
+    }
+
+    return '?';
+  }
+
+  removePreamble(message: string): string {
+    return this.removeInitials(this.removeSemantics(message.trim()));
+  }
+
+  removeInitials(message: string): string {
+    if (message.match( /^[A-Z:\/]{2,}/ ) ) {
+      return message.substr(message.indexOf(' ')).trim();
+    }
+
+    return message;
+  }
+
+  removeSemantics(message: string): string {
+    const labels = new CommitSummary().getDataLabels();
+
+    for (const label of labels) {
+      if (message.startsWith(label)) {
+        return message.substr(message.indexOf(' ')).trim();
+      }
+    }
+
+    return message;
+  }
 }

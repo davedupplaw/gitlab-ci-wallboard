@@ -41,7 +41,7 @@ export default class Server {
         this.updateProjectList();
 
         // Update the project list every 10 minutes
-        setInterval( () => this.updateProjectList(), 60 * 10 * 1000 );
+        setInterval(() => this.updateProjectList(), 60 * 10 * 1000);
     }
 
     get app() {
@@ -75,8 +75,8 @@ export default class Server {
         this._server = http.createServer(this._app);
         this._server.listen(port);
 
-        this._server.on('error', (error) => Server.errorHandler(error, port) );
-        this._server.on('listening', () => this.listeningHandler );
+        this._server.on('error', (error) => Server.errorHandler(error, port));
+        this._server.on('listening', () => this.listeningHandler);
     }
 
     private listeningHandler() {
@@ -140,13 +140,13 @@ export default class Server {
     }
 
     private updateProjectList() {
-        console.log( 'Updating projects...' );
-        this._scmClients.forEach( client => {
-            client.getProjects().then( projects => {
-                projects.forEach( project => {
-                    this.setupProject( client, project );
-                    ProjectCacheFactory.getCache().update( project );
-                } );
+        console.log('Updating projects...');
+        this._scmClients.forEach(client => {
+            client.getProjects().then(projects => {
+                projects.forEach(project => {
+                    this.setupProject(client, project);
+                    ProjectCacheFactory.getCache().update(project);
+                });
             });
         });
     }
@@ -163,10 +163,10 @@ export default class Server {
 
         // If we already have a timer running for a specific project, we do
         // not want to create a new one.
-        if ( !this._timerHandles.get(project.id) ) {
+        if (!this._timerHandles.get(project.id)) {
             // This polling is in lieu of project hooks, which we'll add later
             const timerHandle = setInterval(() => this.getProjectLatestBuild(client, project), 10 * 1000);
-            this._timerHandles.set( project.id, timerHandle );
+            this._timerHandles.set(project.id, timerHandle);
         }
     }
 
@@ -176,7 +176,8 @@ export default class Server {
                 build ? Status[build.status] : 'no build'}`);
             project.lastBuild = build;
 
-            if( project.lastBuild ) {
+            if (project.lastBuild) {
+                project.lastCommitBy = project.lastBuild.commit.by;
                 project.lastBuild.timeStartedFromNow = moment(project.lastBuild.timeStarted).fromNow();
             }
         });

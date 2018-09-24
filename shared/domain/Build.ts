@@ -1,3 +1,5 @@
+import Commit from './Commit';
+
 export enum Status {
     FAIL,
     PASS,
@@ -11,4 +13,5 @@ export default class Build {
     public timeStartedFromNow: string;
     public branch: string;
     public status: Status = Status.UNKNOWN;
+    public commit: Commit;
 }

@@ -4,6 +4,7 @@ import {SCMClient} from './SCMClient';
 import Project from '../../../shared/domain/Project';
 import CommitSummary from '../../../shared/domain/CommitSummary';
 import Build, {Status} from '../../../shared/domain/Build';
+import Commit from '../../../shared/domain/Commit';
 
 export default class GitLabClient implements SCMClient {
     private axios: AxiosInstance;
@@ -141,7 +142,17 @@ export default class GitLabClient implements SCMClient {
                 build.id = response.data.id;
                 build.branch = response.data.ref;
                 build.timeStarted = response.data.created_at;
+                build.commit = new Commit();
+                build.commit.by = response.data.user.name;
                 return build;
+            }).then( build => {
+                const commitURL = `/projects/${projectId}/repository/commits/master`;
+                return this.axios.get( commitURL ).then( response => {
+                    build.commit.by = response.data.committer_name;
+                    build.commit.message = response.data.message;
+                    build.commit.hash = response.data.short_id;
+                    return build;
+                });
             })
             .catch(() => console.error(`Are you sure ${projectId} and ${pipelineId} exist? I could not find it. That is a 404.`));
     }
