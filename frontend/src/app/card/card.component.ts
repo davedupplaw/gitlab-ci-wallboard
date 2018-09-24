@@ -9,7 +9,6 @@ import {Status} from '../../../../shared/domain/Build';
 export class CardComponent implements OnInit {
   public statusString: string;
   @Input() public set status( value: Status ) {
-    console.log( 'Status received: ', value );
     const str = Status[value];
     if ( str ) {
       this.statusString = str.toLowerCase();
