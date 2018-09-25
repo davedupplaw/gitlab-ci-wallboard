@@ -17,7 +17,7 @@ export class BuildCardComponent implements OnInit {
   }
 
   initials(name: string): string {
-    if ( name === '?' ) {
+    if ( !name || name === '?' ) {
       return name;
     }
 

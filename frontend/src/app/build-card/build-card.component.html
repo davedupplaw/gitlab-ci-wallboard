@@ -2,7 +2,7 @@
   <div class="header project-name">
     <a target="_blank" href="{{link}}">{{ build.name }} {{build.lastBuild ? '(' + build.lastBuild.branch + ')' : ''}}</a>
   </div>
-  <div class="meta"><span class="committer">{{ initials(build.lastCommitBy) }}</span>
+  <div class="meta" *ngIf="build.lastBuild && build.lastBuild.commit"><span class="committer">{{ initials(build.lastCommitBy) }}</span>
     <span class="tag {{ semantics(build.lastBuild.commit.message) }}">{{ initials(semantics(build.lastBuild.commit.message)) }}</span>
     {{ removePreamble(build.lastBuild.commit.message) }}</div>
   <div class="description"></div>
