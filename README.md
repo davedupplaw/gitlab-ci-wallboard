@@ -2,7 +2,7 @@
 
 A dashboard for monitoring [GitLab CI][gitlab-ci] builds.
 Based on the code [here][original-github] which used a front-end only
-VueJS app, this has been reworked into an Angular 6 Typescript app with
+VueJS app, this has been reworked into an Angular 7 Typescript app with
 a Typescript nodeJS backend. This allows it to be dockerised and contained
 to one GitLab, with one set of projects and without passing a personal
 access token over the URL.
@@ -12,7 +12,10 @@ using the Personal Access Token provided. For those with build information,
 it shows them on the page coloured green for success, or red for failure.  It shows
 the last committer, when the last commit was made and on what branch that occurred.
 
-The page currently updates every 60 seconds and builds are ordered by name.
+The page currently updates via a websocket, and the backend will check
+GitLab every 120 seconds for new projects and every 10 seconds for
+builds information. Builds are are ordered by name, but failed and
+building projects come first.
 
 This is how it looks:
 
