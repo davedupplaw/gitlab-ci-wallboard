@@ -1,22 +1,15 @@
-import StringUtils from './StringUtils';
 import Axios, {AxiosInstance, AxiosResponse} from 'axios';
 import {SCMClient} from './SCMClient';
 import Project from '../../../shared/domain/Project';
 import CommitSummary from '../../../shared/domain/CommitSummary';
 import Build, {Status} from '../../../shared/domain/Build';
 import Commit from '../../../shared/domain/Commit';
+import {ConfigurationManager} from './ConfigurationManager';
 
 export class GitLabClient implements SCMClient {
     private axios: AxiosInstance;
 
-    private gitlab: string;
-    private token: string;
-    private projectWhitelistCSV: string;
-    private groupWhitelistCSV: string;
-    private userWhitelistCSV: string;
-
-    constructor() {
-        this.consumeEnvironmentVariables();
+    constructor(private configuration: ConfigurationManager) {
         this.checkConfiguration();
         this.createAxiosClient();
     }
@@ -36,8 +29,8 @@ export class GitLabClient implements SCMClient {
         }
     }
 
-    private static gitLabStatusToStatus(status: string ): Status {
-        switch ( status ) {
+    private static gitLabStatusToStatus(status: string): Status {
+        switch (status) {
             case 'running':
             case 'pending':
                 return Status.BUILDING;
@@ -52,10 +45,10 @@ export class GitLabClient implements SCMClient {
 
     private createAxiosClient() {
         this.axios = Axios.create({
-            baseURL: 'https://' + this.gitlab + '/api/v4',
+            baseURL: 'https://' + this.configuration.getConfiguration().scm.gitlab.host + '/api/v4',
             headers: {
                 common: {
-                    'Private-Token': this.token
+                    'Private-Token': this.configuration.getConfiguration().scm.gitlab.token
                 }
             },
             validateStatus: status => status < 500
@@ -63,25 +56,17 @@ export class GitLabClient implements SCMClient {
     }
 
     private checkConfiguration() {
-        if ((this.groupWhitelistCSV !== '' && this.userWhitelistCSV !== '')) {
+        if (this.configuration.getConfiguration().scm.gitlab.whitelist.groups &&
+            this.configuration.getConfiguration().scm.gitlab.whitelist.users) {
             throw new Error('group and user filters cannot be set at the same time. ' +
                 'Unset either GCIWB_GROUPS or GCIWB_USERS.');
         }
     }
 
-    private consumeEnvironmentVariables() {
-        this.gitlab = process.env.GITLAB_HOST || 'gitlab.com';
-        this.token = process.env.GITLAB_TOKEN;
-
-        this.projectWhitelistCSV = process.env.GCIWB_PROJECTS || '';
-        this.groupWhitelistCSV = process.env.GCIWB_GROUPS || '';
-        this.userWhitelistCSV = process.env.GCIWB_USERS || 'davedupplaw';
-    }
-
     public getProjects(): Promise<void | Project[]> {
-        const projects = StringUtils.parseCSV(this.projectWhitelistCSV);
-        const groups = StringUtils.parseCSV(this.groupWhitelistCSV);
-        const users = StringUtils.parseCSV(this.userWhitelistCSV);
+        const projects = this.configuration.getConfiguration().scm.gitlab.whitelist.projects;
+        const groups = this.configuration.getConfiguration().scm.gitlab.whitelist.groups;
+        const users = this.configuration.getConfiguration().scm.gitlab.whitelist.users;
 
         console.log('Getting URLS for:');
         console.log(`  - projects: ${projects}`);
@@ -91,7 +76,7 @@ export class GitLabClient implements SCMClient {
         const urls = this.getUrls(users, groups, projects);
         console.log(urls);
 
-        return Promise.all( urls.map(projectListUrl => this.getProjectList(projectListUrl)) )
+        return Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)))
             .then(projectInfosList => {
                 return projectInfosList.flatMap(v => v);
             })
@@ -126,11 +111,11 @@ export class GitLabClient implements SCMClient {
         const url = `/projects/${projectId}/pipelines?order_by=id&sort=desc`;
         return this.axios.get(url)
             .then(response => {
-                if ( response.data.length > 0 ) {
+                if (response.data.length > 0) {
                     return this.getPipelineStatus(projectId, response.data[0].id);
                 }
             })
-            .catch((error) => console.log(error) );
+            .catch((error) => console.log(error));
     }
 
     private getPipelineStatus(projectId: string, pipelineId: string): Promise<void | Build> {
@@ -138,16 +123,16 @@ export class GitLabClient implements SCMClient {
         return this.axios.get(url)
             .then(response => {
                 const build = new Build();
-                build.status = GitLabClient.gitLabStatusToStatus( response.data.status );
+                build.status = GitLabClient.gitLabStatusToStatus(response.data.status);
                 build.id = response.data.id;
                 build.branch = response.data.ref;
                 build.timeStarted = response.data.created_at;
                 build.commit = new Commit();
                 build.commit.by = response.data.user.name;
                 return build;
-            }).then( build => {
+            }).then(build => {
                 const commitURL = `/projects/${projectId}/repository/commits/master`;
-                return this.axios.get( commitURL ).then( response => {
+                return this.axios.get(commitURL).then(response => {
                     build.commit.by = response.data.committer_name;
                     build.commit.message = response.data.message;
                     build.commit.hash = response.data.short_id;
@@ -191,7 +176,6 @@ export class GitLabClient implements SCMClient {
 
     private getCommits(projectId: string) {
         const url = `/projects/${projectId}/repository/commits?all=yes`;
-        console.log(url);
         return this.axios.get(url);
     }
 }

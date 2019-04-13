@@ -14,7 +14,7 @@ import CommitSummary from '../../../shared/domain/CommitSummary';
 export class SCMController {
     constructor(private io: SocketIO.Server,
                 private configurationManager: ConfigurationManager,
-                private scmClient: SCMClient = new GitLabClient()) {
+                private scmClient: SCMClient = new GitLabClient(configurationManager)) {
     }
 
     public async register(app: express.Application) {

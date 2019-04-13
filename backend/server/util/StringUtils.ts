@@ -1,6 +1,6 @@
-export default class StringUtils {
+export class StringUtils {
     public static parseCSV( csv: string ) {
-        if( csv === "" || !csv ) {
+        if ( csv === '' || !csv ) {
             return [];
         }
         return csv.split(',');

@@ -6,6 +6,15 @@
   },
   "scm": {
     "projectUpdatePeriod": 120000,
-    "buildUpdatePeriod": 10000
+    "buildUpdatePeriod": 10000,
+    "gitlab": {
+      "host": "gitlab.com",
+      "token": null,
+      "whitelist": {
+        "projects": null,
+        "users": null,
+        "groups": null
+      }
+    }
   }
 }
