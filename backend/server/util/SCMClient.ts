@@ -3,8 +3,8 @@ import CommitSummary from '../../../shared/domain/CommitSummary';
 import Build from '../../../shared/domain/Build';
 
 export interface SCMClient {
-    getProjects(): Promise<Project[]>;
-    compileCommitSummaryForProject(id: string): Promise<CommitSummary>;
+    getProjects(): Promise<void | Project[]>;
+    compileCommitSummaryForProject(id: string): Promise<void | CommitSummary>;
 
-    getLatestBuild(id: string): Promise<Build>;
+    getLatestBuild(id: string): Promise<void | Build>;
 }

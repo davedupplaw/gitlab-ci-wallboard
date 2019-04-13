@@ -1,4 +1,4 @@
-import Project from "../../../shared/domain/Project";
+import Project from '../../../shared/domain/Project';
 
 interface Map<T> {
     [key: string]: T;

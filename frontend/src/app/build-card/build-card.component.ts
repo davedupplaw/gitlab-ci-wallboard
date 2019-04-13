@@ -1,5 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import CommitSummary from '../../../../shared/domain/CommitSummary';
+import Project from '../../../../shared/domain/Project';
 
 @Component({
   selector: 'app-build-card',
@@ -7,7 +8,7 @@ import CommitSummary from '../../../../shared/domain/CommitSummary';
   styleUrls: ['./build-card.component.scss']
 })
 export class BuildCardComponent implements OnInit {
-  @Input() public build: any;
+  @Input() public project: Project;
   @Input() public link: string;
 
   constructor() {

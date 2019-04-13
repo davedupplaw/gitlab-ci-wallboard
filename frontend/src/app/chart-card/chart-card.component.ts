@@ -29,9 +29,9 @@ export class ChartCardComponent implements OnInit {
     this.chart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Loading'], //newData.getDataLabels(),
+        labels: ['Loading'], // newData.getDataLabels(),
         datasets: [{
-          label: '# of Votes',
+          label: '# of Commits',
           data: [0],
           backgroundColor: [
             'rgba(255, 99, 132, 0.2)',

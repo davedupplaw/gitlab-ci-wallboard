@@ -9,9 +9,8 @@
   "scripts": {
     "build": "webpack --config build-config/webpack.config.js",
     "watch": "webpack --config build-config/webpack.config.js --watch",
-    "postinstall": "node node_modules/typings/dist/bin.js install --overwrite",
     "start": "node build/compiled.js",
-    "dev": "cd build && nodemon compiled.js -e js -w build",
+    "dev": "cd build && GITLAB_HOST=gitlab.com GITLAB_TOKEN=oetuMDwZAR2HkNXNaLtA nodemon compiled.js -e js -w build",
     "test": "jasmine-node spec"
   },
   "main": "",
@@ -24,10 +23,12 @@
   "author": "Dave Dupplaw",
   "license": "See Licence in LICENCE.TXT",
   "devDependencies": {
+    "@types/socket.io": "^2.1.2",
     "app-root-path": "^2.0.1",
     "axios": "^0.18.0",
     "body-parser": "^1.17.1",
     "cookie-parser": "^1.4.3",
+    "copy-webpack-plugin": "^5.0.2",
     "cors": "^2.8.4",
     "ejs": "^2.5.1",
     "express": "^4.15.2",
@@ -37,11 +38,12 @@
     "nconf": "^0.10.0",
     "nodemon": "^1.17.3",
     "request": "^2.85.0",
-    "ts-loader": "^2.0.2",
+    "socket.io": "^2.2.0",
+    "ts-loader": "^4.5.0",
     "tslint": "^5.10.0",
     "typescript": "^2.2.1",
-    "typings": "^1.3.3",
-    "webpack": "^2.2.1",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.0",
     "webpack-server": "^0.1.2"
   },
   "repository": {

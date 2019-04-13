@@ -1,14 +1,15 @@
 <div id="app">
   <app-logo></app-logo>
+  <app-status [status]="status"></app-status>
   <app-loader *ngIf="loading" [loading]="loading"></app-loader>
   <app-error *ngIf="errorMessage" [errorMessage]="errorMessage"></app-error>
   <app-invalid-config *ngIf="invalidConfig"></app-invalid-config>
 
   <div class="cards">
-    <ng-container *ngFor="let project of projects">
+    <ng-container *ngFor="let project of projects; trackBy: projectTracker">
       <app-card [status]="project.lastBuild ? project.lastBuild.status : UNKNOWN"
                 *ngIf="feConfig.showProjectsWithoutBuilds || project.lastBuild">
-        <app-build-card [build]="project"
+        <app-build-card [project]="project"
                         link="{{project.url}}">
         </app-build-card>
       </app-card>

@@ -1,131 +1,74 @@
 import * as express from 'express';
-import Axios, {AxiosInstance, AxiosResponse} from 'axios';
-import StringUtils from '../util/StringUtils';
 import '../util/ArrayUtils';
-import ProjectCacheFactory from "../util/ProjectCacheFactory";
-import Project from "../../../shared/domain/Project";
+import ProjectCacheFactory from '../util/ProjectCacheFactory';
+import Project from '../../../shared/domain/Project';
+import * as SocketIO from 'socket.io';
+import {Socket} from 'socket.io';
+import {SCMClient} from '../util/SCMClient';
+import {GitLabClient} from '../util/GitLabClient';
+import Build from '../../../shared/domain/Build';
+import {ConfigurationManager} from '../util/ConfigurationManager';
+import {Status, StatusType} from '../../../shared/domain/Status';
+import CommitSummary from '../../../shared/domain/CommitSummary';
 
-export default class SCMController {
-    private axios: AxiosInstance;
-
-    private readonly gitlab: string;
-    private readonly token: string;
-    private readonly projectWhitelistCSV: string;
-    private readonly groupWhitelistCSV: string;
-    private readonly userWhitelistCSV: string;
-
-    public static register(app: express.Application) {
-        const scmController = new SCMController();
-        const router = express.Router();
-        router.get('/projects', (req, res) => scmController.projects(req, res));
-        router.get('/projects/:projectId/pipelines', (req, res) => scmController.projectPipelines(req, res));
-        router.get('/projects/:projectId/pipelines/:pipelineId', (req, res) => scmController.pipeline(req, res));
-        router.get('/projects/:projectId/commits', (req, res) => scmController.commits(req, res));
-        router.get('/projects/:projectId/commitSummary', (req, res) => scmController.commitSummary(req, res));
-        router.get('/commitSummary', (res, req) => scmController.commitSummary(res, req));
-        app.use('/gitlab', router);
+export class SCMController {
+    constructor(private io: SocketIO.Server,
+                private configurationManager: ConfigurationManager,
+                private scmClient: SCMClient = new GitLabClient()) {
     }
 
-    private static throwIfBadResponse(responses: AxiosResponse<any>[] | AxiosResponse<any>) {
-        let max: AxiosResponse<any>;
-        if (Array.isArray(responses)) {
-            max = responses.max(r => r.status);
-        } else {
-            max = responses;
-        }
+    public async register(app: express.Application) {
+        this.io.on('connection', async (socket: Socket) => {
+            console.log('User connected: ', socket.id);
 
-        if (max.status >= 300) {
-            const message = 'Got response ' + max.status + ' from project ' + max.data.name;
-            console.log('Max status: ', message);
-            throw new Error(message);
-        }
-    }
+            const projectTimer = setInterval(() => this.updateProjects(socket),
+                this.configurationManager.getConfiguration().scm.projectUpdatePeriod);
+            await this.updateProjects(socket);
 
-    constructor() {
-        this.gitlab = process.env.GITLAB_HOST || 'gitlab.com';
-        this.token = process.env.GITLAB_TOKEN;
+            const pipelineTimer = setInterval(() => this.updatePipelines(socket),
+                this.configurationManager.getConfiguration().scm.buildUpdatePeriod);
+            await this.updatePipelines(socket);
 
-        this.projectWhitelistCSV = process.env.GCIWB_PROJECTS || '';
-        this.groupWhitelistCSV = process.env.GCIWB_GROUPS || '';
-        this.userWhitelistCSV = process.env.GCIWB_USERS || '';
-
-        if ((this.groupWhitelistCSV !== '' && this.userWhitelistCSV !== '')) {
-            throw new Error('group and user filters cannot be set at the same time. ' +
-                'Unset either GCIWB_GROUPS or GCIWB_USERS.');
-        }
-
-        this.axios = Axios.create({
-            baseURL: 'https://' + this.gitlab + '/api/v4',
-            headers: {
-                common: {
-                    'Private-Token': this.token
-                }
-            },
-            validateStatus: status => status < 500
+            socket.on('disconnect', () => {
+                console.log('User disconnected: ', socket.id);
+                clearInterval(projectTimer);
+                clearInterval(pipelineTimer);
+            });
         });
     }
 
-    public projects(req: express.Request, res: express.Response) {
-        const projects: Project[] = ProjectCacheFactory.getCache().getProjects();
-        res.send(projects);
+    private async updateProjects(socket: Socket): Promise<void | Project[]>  {
+        socket.emit('status', new Status(StatusType.PENDING, 'Updating projects...'));
+        const projects: void | Project[] = await this.scmClient.getProjects();
+        if (projects) {
+            projects.forEach(project => ProjectCacheFactory.getCache().update(project));
+            socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
+            socket.emit('status', new Status(StatusType.SUCCESS, 'Updated projects successfully.'));
+        }
     }
 
-    private projectPipelines(req: express.Request, res: express.Response): Promise<any> {
-        const projectId = req.params.projectId;
-        const url = `/projects/${projectId}/pipelines`;
-        return this.axios.get(url)
-            .then(response => {
-                res.send(response.data);
-            })
-            .catch(() => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
-    }
-
-    private pipeline(req: express.Request, res: express.Response): Promise<any> {
-        const projectId = req.params.projectId;
-        const pipelineId = req.params.pipelineId;
-        const url = `/projects/${projectId}/pipelines/${pipelineId}`;
-        return this.axios.get(url)
-            .then(response => {
-                res.send(response.data);
-            })
-            .catch(() => res.send(`Are you sure ${projectId} and ${pipelineId} exist? I could not find it. That is a 404.`));
-    }
-
-    private commits(req: express.Request, res: express.Response): Promise<any> {
-        const projectId = req.params.projectId;
-        return this.getCommits(projectId).then((commits) => res.send(commits.data))
-            .catch((err) => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
-    }
-
-    private getCommits(projectId: string) {
-        const url = `/projects/${projectId}/repository/commits?all=yes`;
-        return this.axios.get(url);
-    }
-
-    private commitSummary(req: express.Request, res: express.Response) {
-        const projectId = req.params.projectId;
-        return this.commitSummaryForProject(projectId).then(summary => res.send(summary))
-            .catch(() => res.send(`Are you sure ${projectId} exists? I could not find it. That is a 404.`));
-    }
-
-    private commitSummaryForProject(projectId: string) {
-        const semanticCounts = {};
-        return this.getCommits(projectId).then((commits) => {
-            const allowedValues = ['chore', 'fix', 'docs', 'refactor', 'style', 'localize', 'test', 'feat'];
-            const regex = new RegExp('^([^:\s]+)', 'gm');
-
-            allowedValues.forEach(v => semanticCounts[v] = 0);
-
-            for (const commit of commits.data) {
-                const message = commit.message;
-                const matches = regex.exec(message);
-
-                if (matches && allowedValues.includes(matches[1].trim())) {
-                    semanticCounts[matches[1].trim()]++;
-                }
+    private async updatePipelines(socket: Socket): Promise<void> {
+        socket.emit('status', new Status(StatusType.PENDING, 'Getting latest build status...'));
+        const update = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map( async project => {
+            const latestBuild: void | Build = await this.scmClient.getLatestBuild(project.id);
+            if ( latestBuild ) {
+                project.lastBuild = latestBuild;
             }
+        }));
+        await update();
+        socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
 
-            return semanticCounts;
-        });
+        socket.emit('status', new Status(StatusType.PENDING, 'Retrieving commit summary...'));
+
+        const updateCommits = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map( async project => {
+            const commitSummary: void | CommitSummary = await this.scmClient.compileCommitSummaryForProject(project.id);
+            if (commitSummary) {
+                project.commitSummary = commitSummary;
+            }
+        }));
+        await updateCommits();
+        socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
+
+        socket.emit('status', new Status(StatusType.SUCCESS, 'All projects up to date.'));
     }
 }

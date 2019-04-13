@@ -6,7 +6,7 @@ import CommitSummary from '../../../shared/domain/CommitSummary';
 import Build, {Status} from '../../../shared/domain/Build';
 import Commit from '../../../shared/domain/Commit';
 
-export default class GitLabClient implements SCMClient {
+export class GitLabClient implements SCMClient {
     private axios: AxiosInstance;
 
     private gitlab: string;
@@ -75,10 +75,10 @@ export default class GitLabClient implements SCMClient {
 
         this.projectWhitelistCSV = process.env.GCIWB_PROJECTS || '';
         this.groupWhitelistCSV = process.env.GCIWB_GROUPS || '';
-        this.userWhitelistCSV = process.env.GCIWB_USERS || '';
+        this.userWhitelistCSV = process.env.GCIWB_USERS || 'davedupplaw';
     }
 
-    public getProjects(): Promise<Project[]> {
+    public getProjects(): Promise<void | Project[]> {
         const projects = StringUtils.parseCSV(this.projectWhitelistCSV);
         const groups = StringUtils.parseCSV(this.groupWhitelistCSV);
         const users = StringUtils.parseCSV(this.userWhitelistCSV);
@@ -122,7 +122,7 @@ export default class GitLabClient implements SCMClient {
         });
     }
 
-    public getLatestBuild(projectId: string): Promise<Build> {
+    public getLatestBuild(projectId: string): Promise<void | Build> {
         const url = `/projects/${projectId}/pipelines?order_by=id&sort=desc`;
         return this.axios.get(url)
             .then(response => {
@@ -133,7 +133,7 @@ export default class GitLabClient implements SCMClient {
             .catch((error) => console.log(error) );
     }
 
-    private getPipelineStatus(projectId: string, pipelineId: string): Promise<Build> {
+    private getPipelineStatus(projectId: string, pipelineId: string): Promise<void | Build> {
         const url = `/projects/${projectId}/pipelines/${pipelineId}`;
         return this.axios.get(url)
             .then(response => {

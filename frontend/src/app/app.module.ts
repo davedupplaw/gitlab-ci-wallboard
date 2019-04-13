@@ -12,6 +12,8 @@ import {ErrorComponent} from './error/error.component';
 import {InvalidConfigComponent} from './invalid-config/invalid-config.component';
 import {LogoComponent} from './logo/logo.component';
 import { ChartCardComponent } from './chart-card/chart-card.component';
+import {SocketIoConfig, SocketIoModule} from 'ngx-socket-io';
+import { StatusComponent } from './status/status.component';
 
 @NgModule({
   declarations: [
@@ -22,13 +24,15 @@ import { ChartCardComponent } from './chart-card/chart-card.component';
     ErrorComponent,
     InvalidConfigComponent,
     LogoComponent,
-    ChartCardComponent
+    ChartCardComponent,
+    StatusComponent
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     AngularSvgIconModule,
-    AngularFontAwesomeModule
+    AngularFontAwesomeModule,
+    SocketIoModule.forRoot({} as SocketIoConfig)
   ],
   providers: [],
   bootstrap: [AppComponent]

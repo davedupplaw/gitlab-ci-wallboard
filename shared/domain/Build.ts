@@ -1,10 +1,10 @@
 import Commit from './Commit';
 
 export enum Status {
-    FAIL,
-    PASS,
-    BUILDING,
-    UNKNOWN
+    FAIL = 0,
+    BUILDING = 1,
+    PASS = 2,
+    UNKNOWN = 1000
 }
 
 export default class Build {
