@@ -4,7 +4,7 @@
   </div>
   <div class="meta" *ngIf="project.lastBuild && project.lastBuild.commit"><span class="committer">{{ initials(project.lastCommitBy) }}</span>
     <span class="tag {{ semantics(project.lastBuild.commit.message) }}">{{ initials(semantics(project.lastBuild.commit.message)) }}</span>
-    {{ removePreamble(project.lastBuild.commit.message) }}</div>
+    <span title="{{project.lastBuild.commit.message}}">{{ removePreamble(project.lastBuild.commit.message) }}</span></div>
   <div class="description"></div>
 </div>
 <div class="extra content">
