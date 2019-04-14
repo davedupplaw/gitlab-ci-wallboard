@@ -4,8 +4,10 @@
       <span *ngIf="project.lastBuild && project.lastBuild.branch !== 'master'">{{project.lastBuild ? '(' + project.lastBuild.branch + ')' : ''}}</span>
     </a>
   </div>
-  <div class="meta" *ngIf="project.lastBuild && project.lastBuild.commit"><span class="committer">{{ initials(project.lastCommitBy) }}</span>
-    <span class="tag {{ semantics(project.lastBuild.commit.message) }}">{{ initials(semantics(project.lastBuild.commit.message)) }}</span>
+  <div class="meta" *ngIf="project.lastBuild && project.lastBuild.commit">
+    <span class="committer">{{ initials(project.lastCommitBy) }}</span>
+    <span class="tag {{ semantics(project.lastBuild.commit.message) }}"
+          [title]="semantics(project.lastBuild.commit.message)">{{ initials(semantics(project.lastBuild.commit.message)) }}</span>
     <span title="{{project.lastBuild.commit.message}}">{{ removePreamble(project.lastBuild.commit.message) }}</span></div>
   <div class="description"></div>
 </div>

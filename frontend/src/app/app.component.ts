@@ -127,6 +127,7 @@ export class AppComponent implements OnInit {
     projects.forEach(project => {
       if (project.lastBuild) {
         project.lastBuild.timeStartedFromNow = moment(project.lastBuild.timeStarted).fromNow();
+        project.lastCommitBy = project.lastBuild.commit.by;
       }
     });
   }
