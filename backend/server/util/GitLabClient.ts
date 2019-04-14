@@ -63,7 +63,7 @@ export class GitLabClient implements SCMClient {
         }
     }
 
-    public getProjects(): Promise<void | Project[]> {
+    public async getProjects(): Promise<void | Project[]> {
         const projects = this.configuration.getConfiguration().scm.gitlab.whitelist.projects;
         const groups = this.configuration.getConfiguration().scm.gitlab.whitelist.groups;
         const users = this.configuration.getConfiguration().scm.gitlab.whitelist.users;
@@ -76,92 +76,76 @@ export class GitLabClient implements SCMClient {
         const urls = this.getUrls(users, groups, projects);
         console.log(urls);
 
-        return Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)))
-            .then(projectInfosList => {
-                return projectInfosList.flatMap(v => v);
-            })
-            .catch(error => {
-                console.error(error);
-            });
+        const projectInfosList = await Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)));
+        return projectInfosList.flatMap(v => v);
     }
 
-    public compileCommitSummaryForProject(projectId: string): Promise<CommitSummary> {
-        return this.getCommits(projectId).then((commits) => {
+    public async compileCommitSummaryForProject(projectId: string): Promise<CommitSummary> {
+        const commits = await this.getCommits(projectId);
 
-            const semanticCounts: CommitSummary = new CommitSummary();
-            const allowedValues = ['chore', 'fix', 'docs', 'refactor', 'style', 'localize', 'test', 'feat'];
-            const regex = new RegExp('^([^:\s]+)', 'gm');
+        const semanticCounts: CommitSummary = new CommitSummary();
+        const allowedValues = ['chore', 'fix', 'docs', 'refactor', 'style', 'localize', 'test', 'feat'];
+        const regex = new RegExp('^([^:\s]+)', 'gm');
 
-            allowedValues.forEach(v => semanticCounts[v] = 0);
+        allowedValues.forEach(v => semanticCounts[v] = 0);
 
-            for (const commit of commits.data) {
-                const message = commit.message;
-                const matches = regex.exec(message);
+        for (const commit of commits.data) {
+            const message = commit.message;
+            const matches = regex.exec(message);
 
-                if (matches && allowedValues.includes(matches[1].trim())) {
-                    semanticCounts[matches[1].trim()]++;
-                }
+            if (matches && allowedValues.includes(matches[1].trim())) {
+                semanticCounts[matches[1].trim()]++;
             }
+        }
 
-            return semanticCounts;
-        });
+        return semanticCounts;
     }
 
-    public getLatestBuild(projectId: string): Promise<void | Build> {
+    public async getLatestBuild(projectId: string): Promise<void | Build> {
         const url = `/projects/${projectId}/pipelines?order_by=id&sort=desc`;
-        return this.axios.get(url)
-            .then(response => {
-                if (response.data.length > 0) {
-                    return this.getPipelineStatus(projectId, response.data[0].id);
-                }
-            })
-            .catch((error) => console.log(error));
+        const response = await this.axios.get(url);
+
+        if (response.data.length > 0) {
+            return this.getPipelineStatus(projectId, response.data[0].id);
+        }
     }
 
-    private getPipelineStatus(projectId: string, pipelineId: string): Promise<void | Build> {
+    private async getPipelineStatus(projectId: string, pipelineId: string): Promise<void | Build> {
         const url = `/projects/${projectId}/pipelines/${pipelineId}`;
-        return this.axios.get(url)
-            .then(response => {
-                const build = new Build();
-                build.status = GitLabClient.gitLabStatusToStatus(response.data.status);
-                build.id = response.data.id;
-                build.branch = response.data.ref;
-                build.timeStarted = response.data.created_at;
-                build.commit = new Commit();
-                build.commit.by = response.data.user.name;
-                return build;
-            }).then(build => {
-                const commitURL = `/projects/${projectId}/repository/commits/master`;
-                return this.axios.get(commitURL).then(response => {
-                    build.commit.by = response.data.committer_name;
-                    build.commit.message = response.data.message;
-                    build.commit.hash = response.data.short_id;
-                    return build;
-                });
-            })
-            .catch(() => console.error(`Are you sure ${projectId} and ${pipelineId} exist? I could not find it. That is a 404.`));
-    }
+        const response = await this.axios.get(url)
 
-    private getProjectList(projectListUrl): Promise<Project[]> {
-        return this.axios.get(projectListUrl).then(result => {
-            GitLabClient.throwIfBadResponse(result);
+        const build = new Build();
+        build.status = GitLabClient.gitLabStatusToStatus(response.data.status);
+        build.id = response.data.id;
+        build.branch = response.data.ref;
+        build.timeStarted = response.data.created_at;
+        build.commit = new Commit();
+        build.commit.by = response.data.user.name;
 
-            return result.data.map(projectFromGitLab => {
-                const project = new Project();
-                project.id = projectFromGitLab.id;
-                project.name = projectFromGitLab.name;
-                project.description = projectFromGitLab.description;
-                project.url = projectFromGitLab.web_url;
-                return project;
-            });
-
-        }).catch(err => {
-            console.log(err);
-            console.log(`Error retrieving ${projectListUrl}`);
+        const commitURL = `/projects/${projectId}/repository/commits/master`;
+        return this.axios.get(commitURL).then(commitsResponse => {
+            build.commit.by = commitsResponse.data.committer_name;
+            build.commit.message = commitsResponse.data.message;
+            build.commit.hash = commitsResponse.data.short_id;
+            return build;
         });
     }
 
-    private getUrls(users: string[], groups: string[], projects: string[]) {
+    private async getProjectList(projectListUrl): Promise<Project[]> {
+        const result = await this.axios.get(projectListUrl);
+        GitLabClient.throwIfBadResponse(result);
+
+        return result.data.map(projectFromGitLab => {
+            const project = new Project();
+            project.id = projectFromGitLab.id;
+            project.name = projectFromGitLab.name;
+            project.description = projectFromGitLab.description;
+            project.url = projectFromGitLab.web_url;
+            return project;
+        });
+    }
+
+    private getUrls(users: string[], groups: string[], projects: string[]): string[] {
         const params = '?simple=true&per_page=100';
         if (users.length > 0) {
             return users.map(user => `/users/${user}/projects${params}`);
