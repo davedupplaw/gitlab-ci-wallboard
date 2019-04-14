@@ -42,19 +42,23 @@ docker run -d -p 3000:3000 \
            davedupplaw/gitlab-ci-wallboard
 ```
 
+See the docker hub page here: https://cloud.docker.com/repository/docker/davedupplaw/gitlab-ci-wallboard
+
 ### Configuration
 
 Here are the configuration options that can be passed in the environment:
 
-| Option        | Description                                  |
-| ------------- | -------------------------------------------- |
-| GITLAB_HOST   | Which GitLab server to get information from  |
-| GITLAB_TOKEN  | The Personal Access Token to use to get information |
-| GCIWB_GROUPS  | The groups to use to get projects from (csv) (mutually exclusive with GCIWB_USERS) |
-| GCIWB_USERS   | The users to use get projects from (csv) (mutually exclusive with GCIWB_GROUPS) |
-| GCIWB_PROJECTS | The list of projects to use (csv) |
-| GCIWB_INCLUDE_NO_BUILDS | Whether to include projects without a build |
-| GCIWB_SHOW_SEMANTICS | Whether to show the semantic commit summary card |
+| Option        | Description                                  | Default |
+| ------------- | -------------------------------------------- | ------- |
+| GITLAB_HOST   | Which GitLab server to get information from  | gitlab.com |
+| GITLAB_TOKEN  | The Personal Access Token to use to get information | |
+| GCIWB_PORT | The port on which to run the service | 3000 |
+| GCWIB_WALLBOARD_URL | The URL where the wallboard can be contacted (used to add project hooks to Gitlab) | http://localhost |
+| GCIWB_GROUPS  | The groups to use to get projects from (csv) (mutually exclusive with GCIWB_USERS) | |
+| GCIWB_USERS   | The users to use get projects from (csv) (mutually exclusive with GCIWB_GROUPS) | |
+| GCIWB_PROJECTS | The list of projects to use (csv) | |
+| GCIWB_INCLUDE_NO_BUILDS | Whether to include projects without a build | false |
+| GCIWB_SHOW_SEMANTICS | Whether to show the semantic commit summary card | true |
 
 ## Development
 

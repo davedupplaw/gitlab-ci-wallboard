@@ -1,6 +1,8 @@
 <div class="content">
   <div class="header project-name">
-    <a target="_blank" href="{{ link }}">{{ project.name }} <span *ngIf="project.lastBuild && project.lastBuild.branch !== 'master'">{{project.lastBuild ? '(' + project.lastBuild.branch + ')' : ''}}</span></a>
+    <a target="_blank" href="{{ link }}">{{ project.name }}
+      <span *ngIf="project.lastBuild && project.lastBuild.branch !== 'master'">{{project.lastBuild ? '(' + project.lastBuild.branch + ')' : ''}}</span>
+    </a>
   </div>
   <div class="meta" *ngIf="project.lastBuild && project.lastBuild.commit"><span class="committer">{{ initials(project.lastCommitBy) }}</span>
     <span class="tag {{ semantics(project.lastBuild.commit.message) }}">{{ initials(semantics(project.lastBuild.commit.message)) }}</span>

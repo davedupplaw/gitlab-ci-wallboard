@@ -1,12 +1,16 @@
 {
   "port": 3000,
+  "wallboard_url": "http://localhost",
   "frontend": {
     "showProjectsWithoutBuilds": false,
     "showSemanticsCard": true
   },
   "scm": {
-    "projectUpdatePeriod": 120000,
-    "buildUpdatePeriod": 10000,
+    "usePolling": true,
+    "pollingConfiguration": {
+      "projectUpdatePeriod": 120000,
+      "buildUpdatePeriod": 10000
+    },
     "gitlab": {
       "host": "gitlab.com",
       "token": null,

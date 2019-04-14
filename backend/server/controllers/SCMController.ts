@@ -22,11 +22,11 @@ export class SCMController {
             console.log('User connected: ', socket.id);
 
             const projectTimer = setInterval(() => this.updateProjects(socket),
-                this.configurationManager.getConfiguration().scm.projectUpdatePeriod);
+                this.configurationManager.getConfiguration().scm.pollingConfiguration.projectUpdatePeriod);
             await this.updateProjects(socket);
 
             const pipelineTimer = setInterval(() => this.updatePipelines(socket),
-                this.configurationManager.getConfiguration().scm.buildUpdatePeriod);
+                this.configurationManager.getConfiguration().scm.pollingConfiguration.buildUpdatePeriod);
             await this.updatePipelines(socket);
 
             socket.on('disconnect', () => {
