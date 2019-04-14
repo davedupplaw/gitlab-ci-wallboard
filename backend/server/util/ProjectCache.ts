@@ -7,15 +7,19 @@ interface Map<T> {
 export default class ProjectCache {
     private _cache: Map<Project> = {};
 
-    public getProject( key: string ) {
+    public getProject(key: string) {
         return this._cache[key];
     }
 
     public update(project: Project) {
-        this._cache[project.id] = project;
+        if (project && project.id) {
+            this._cache[project.id] = project;
+        } else {
+            console.warn('ProjectCache: Ignored project: ', project);
+        }
     }
 
     public getProjects() {
-        return Object.keys(this._cache).map(k => this._cache[k] );
+        return Object.keys(this._cache).map(k => this._cache[k]);
     }
 }
