@@ -4,7 +4,6 @@ import Build from '../../../shared/domain/Build';
 
 export interface SCMClient {
     getProjects(): Promise<void | Project[]>;
-    compileCommitSummaryForProject(id: string): Promise<void | CommitSummary>;
-
     getLatestBuild(id: string): Promise<void | Build>;
+    compileCommitSummaryForProject(id: string): Promise<void | CommitSummary>;
 }

@@ -178,4 +178,31 @@ export class GitLabClient implements SCMClient {
         const url = `/projects/${projectId}/repository/commits?all=yes`;
         return this.axios.get(url);
     }
+
+    public async addProjectHook(projectId: number):  Promise<void> {
+        const wallboardUrl = this.configuration.getConfiguration().wallboard_url;
+        const randomToken = `${Math.random()}`;
+        const url = `/projects/${projectId}/hooks`;
+        const payload = {
+            id: projectId,
+            url: `${wallboardUrl}/gitlab/hooks/${projectId}`,
+            push_events: true,
+            pipeline_events: true,
+            token: randomToken
+        };
+        await this.axios.post(url, payload);
+    }
+
+    public async hasProjectHook(projectId: number): Promise<boolean> {
+        const wallboardUrl = this.configuration.getConfiguration().wallboard_url;
+        const url = `/projects/${projectId}/hooks`;
+        const hooks = await this.axios.get<any[]>(url);
+        const hookUrl = `${wallboardUrl}/gitlab/hooks/${projectId}`;
+        return hooks.data.some(hook => hook.url === hookUrl);
+    }
+
+    public async removeProjectHook(projectId: number): Promise<void> {
+        const url = `/projects/${projectId}/hooks`;
+        await this.axios.delete(url);
+    }
 }
