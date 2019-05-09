@@ -36,7 +36,7 @@ export class ConfigurationManager {
 
         gitlab.whitelist.projects = StringUtils.parseWhitelist(process.env.GCIWB_PROJECTS);
         gitlab.whitelist.groups = StringUtils.parseWhitelist(process.env.GCIWB_GROUPS);
-        gitlab.whitelist.users = StringUtils.parseWhitelist(process.env.GCIWB_USERS) || ['davedupplaw'];
+        gitlab.whitelist.users = StringUtils.parseWhitelist(process.env.GCIWB_USERS);
 
         return gitlab;
     }
