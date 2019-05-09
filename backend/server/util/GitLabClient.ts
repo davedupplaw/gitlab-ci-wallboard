@@ -147,11 +147,11 @@ export class GitLabClient implements SCMClient {
 
     private getUrls(users: string[], groups: string[], projects: string[]): string[] {
         const params = '?simple=true&per_page=100';
-        if (users.length > 0) {
+        if (users && users.length > 0) {
             return users.map(user => `/users/${user}/projects${params}`);
-        } else if (groups.length > 0) {
+        } else if (groups && groups.length > 0) {
             return groups.map(group => `/groups/${group}/projects${params}`);
-        } else if (projects.length > 0) {
+        } else if (projects && projects.length > 0) {
             return projects.map(project => `/projects/${project}${params}`);
         } else {
             return [`/projects${params}`];
