@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import {Configuration, FrontEndConfiguration} from '../../../shared/domain/config/Configuration';
+import {Configuration, FrontEndConfiguration, SCMConfig} from '../../../shared/domain/config/Configuration';
 import {GitLabConfiguration} from '../../../shared/domain/config/GitLabConfiguration';
 import {StringUtils} from './StringUtils';
 
@@ -12,6 +12,7 @@ export class ConfigurationManager {
 
         ConfigurationManager.updateConfigurationFromEnvironment(this.config);
         ConfigurationManager.updateFrontendConfigurationFromEnvironment(this.config.frontend);
+        ConfigurationManager.updateSCMConfigurationFromEnvironment(this.config.scm);
         ConfigurationManager.updateGitlabConfigurationFromEnvironment(this.config.scm.gitlab);
 
         console.log('Using the following configuration:');
@@ -28,6 +29,13 @@ export class ConfigurationManager {
         config.showProjectsWithoutBuilds = StringUtils.tf(process.env.GCIWB_INCLUDE_NO_BUILDS, config.showProjectsWithoutBuilds);
         config.showSemanticsCard = StringUtils.tf(process.env.GCIWB_SHOW_SEMANTICS, config.showSemanticsCard);
         return config;
+    }
+
+    private static updateSCMConfigurationFromEnvironment(config: SCMConfig) {
+        config.pollingConfiguration.buildUpdatePeriod = StringUtils.parseInteger(
+            process.env.GCIWB_BUILD_UPDATE_PERIOD, config.pollingConfiguration.buildUpdatePeriod);
+        config.pollingConfiguration.projectUpdatePeriod = StringUtils.parseInteger(
+            process.env.GCIWB_PROJECT_UPDATE_PERIOD, config.pollingConfiguration.projectUpdatePeriod);
     }
 
     private static updateGitlabConfigurationFromEnvironment(gitlab: GitLabConfiguration): GitLabConfiguration {
