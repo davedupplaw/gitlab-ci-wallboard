@@ -10,7 +10,7 @@
     "build": "webpack --config build-config/webpack.config.js",
     "watch": "webpack --config build-config/webpack.config.js --watch",
     "start": "node build/compiled.js",
-    "dev": "cd build && GITLAB_HOST=gitlab.com GITLAB_TOKEN=8sDqqdayhJciwsbMj_MM nodemon compiled.js -e js -w build",
+    "dev": "cd build && nodemon compiled.js -e js -w build",
     "test": "jasmine-node spec"
   },
   "main": "",

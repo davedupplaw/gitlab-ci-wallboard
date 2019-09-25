@@ -14,6 +14,7 @@ export class SCMConfig {
 export class PollingConfiguration {
     public projectUpdatePeriod: number;
     public buildUpdatePeriod: number;
+    public commitSummaryUpdatePeriod: number;
 }
 
 export class Configuration {

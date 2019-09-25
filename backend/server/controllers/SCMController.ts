@@ -27,12 +27,16 @@ export class SCMController {
 
             const pipelineTimer = setInterval(() => this.updatePipelines(socket),
                 this.configurationManager.getConfiguration().scm.pollingConfiguration.buildUpdatePeriod);
-            await this.updatePipelines(socket);
+
+            const commitTimer = setInterval(() => this.updateCommits(socket),
+                this.configurationManager.getConfiguration().scm.pollingConfiguration.commitSummaryUpdatePeriod);
+            await this.updateCommits(socket);
 
             socket.on('disconnect', () => {
                 console.log('User disconnected: ', socket.id);
                 clearInterval(projectTimer);
                 clearInterval(pipelineTimer);
+                clearInterval(commitTimer);
             });
         });
     }
@@ -42,8 +46,7 @@ export class SCMController {
         const projects: void | Project[] = await this.scmClient.getProjects();
         if (projects) {
             projects.forEach(project => ProjectCacheFactory.getCache().update(project));
-            socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
-            socket.emit('status', new Status(StatusType.SUCCESS, 'Updated projects successfully.'));
+            this.updatePipelines(socket);
         }
     }
 
@@ -56,8 +59,12 @@ export class SCMController {
             }
         }));
         await update();
-        socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
 
+        socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
+        socket.emit('status', new Status(StatusType.PENDING, 'Builds up to date'));
+    }
+
+    private async updateCommits(socket: Socket): Promise<void> {
         socket.emit('status', new Status(StatusType.PENDING, 'Retrieving commit summary...'));
 
         const updateCommits = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map( async project => {
@@ -68,7 +75,6 @@ export class SCMController {
         }));
         await updateCommits();
         socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
-
-        socket.emit('status', new Status(StatusType.SUCCESS, 'All projects up to date.'));
+        socket.emit('status', new Status(StatusType.SUCCESS, 'Commits up to date.'));
     }
 }

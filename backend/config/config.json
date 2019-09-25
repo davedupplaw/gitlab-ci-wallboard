@@ -8,8 +8,9 @@
   "scm": {
     "usePolling": true,
     "pollingConfiguration": {
-      "projectUpdatePeriod": 120000,
-      "buildUpdatePeriod": 10000
+      "projectUpdatePeriod": 300000,
+      "commitSummaryUpdatePeriod": 120000,
+      "buildUpdatePeriod": 20000
     },
     "gitlab": {
       "host": "gitlab.com",
