@@ -9,4 +9,9 @@ export interface SCMClient {
     getLatestBuild(id: string): Promise<void | Build>;
     compileCommitSummaryForProject(id: string): Promise<void | CommitSummary>;
     augmentApi(app: express.Application, io: SocketIO.Server): void;
+    hasProjectHook(id: string): Promise<boolean | number>;
+    addProjectHook(id: string): Promise<number>;
+    removeProjectHook(projectId: string, hookId: number): void;
+    cleanup(): void;
+
 }

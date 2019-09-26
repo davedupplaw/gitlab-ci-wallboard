@@ -21,7 +21,7 @@ export class PollingConfiguration {
 
 export class Configuration {
     public port: number;
-    public wallboard_url: string;
+    public wallboardUrl: string;
     public scm: SCMConfig;
     public frontend: FrontEndConfiguration;
 }

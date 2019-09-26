@@ -22,7 +22,7 @@ export class ConfigurationManager {
 
     private static updateConfigurationFromEnvironment(config: Configuration): Configuration {
         config.port = StringUtils.parseInteger(process.env.GCIWB_PORT, config.port);
-        config.wallboard_url = process.env.GCIWB_WALLBOARD_URL || config.wallboard_url;
+        config.wallboardUrl = process.env.GCIWB_WALLBOARD_URL || config.wallboardUrl;
         return config;
     }
 

@@ -1,6 +1,6 @@
 {
   "port": 3000,
-  "wallboard_url": "http://localhost",
+  "wallboardUrl": "http://localhost",
   "frontend": {
     "showProjectsWithoutBuilds": false,
     "showSemanticsCard": true

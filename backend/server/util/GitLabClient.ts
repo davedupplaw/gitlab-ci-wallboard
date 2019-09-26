@@ -8,6 +8,7 @@ import Build, {Status} from '../../../shared/domain/Build';
 import Commit from '../../../shared/domain/Commit';
 import {ConfigurationManager} from './ConfigurationManager';
 import {Logger} from './Logger';
+import Hook from "../../../shared/domain/Hook";
 
 export class GitLabClient implements SCMClient {
     private axios: AxiosInstance;
@@ -167,8 +168,8 @@ export class GitLabClient implements SCMClient {
         return this.axios.get(url);
     }
 
-    public async addProjectHook(projectId: number):  Promise<void> {
-        const wallboardUrl = this.configuration.getConfiguration().wallboard_url;
+    public async addProjectHook(projectId: string):  Promise<number> {
+        const wallboardUrl = this.configuration.getConfiguration().wallboardUrl;
         const randomToken = `${Math.random()}`;
         const url = `/projects/${projectId}/hooks`;
         const payload = {
@@ -178,19 +179,19 @@ export class GitLabClient implements SCMClient {
             pipeline_events: true,
             token: randomToken
         };
-        await this.axios.post(url, payload);
+        return (await this.axios.post<Hook>(url, payload)).data.id;
     }
 
-    public async hasProjectHook(projectId: number): Promise<boolean> {
-        const wallboardUrl = this.configuration.getConfiguration().wallboard_url;
+    public async hasProjectHook(projectId: string): Promise<boolean | number> {
+        const wallboardUrl = this.configuration.getConfiguration().wallboardUrl;
         const url = `/projects/${projectId}/hooks`;
         const hooks = await this.axios.get<any[]>(url);
         const hookUrl = `${wallboardUrl}/gitlab/hooks/${projectId}`;
-        return hooks.data.some(hook => hook.url === hookUrl);
+        return hooks.data.filter(hook => hook.url === hookUrl).map(hook => hook.id as number)[0];
     }
 
-    public async removeProjectHook(projectId: number): Promise<void> {
-        const url = `/projects/${projectId}/hooks`;
+    public async removeProjectHook(projectId: string, hookId: number) {
+        const url = `/projects/${projectId}/hooks/${hookId}`;
         await this.axios.delete(url);
     }
 
@@ -198,5 +199,8 @@ export class GitLabClient implements SCMClient {
         app.use('/gitlab/hooks/{id}', (req, res) => {
             this.logger.log('Received push for ', req.params.id);
         });
+    }
+
+    cleanup(): void {
     }
 }

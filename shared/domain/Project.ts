@@ -9,4 +9,5 @@ export default class Project {
     public lastCommitBy: string;
     public lastBuild: Build;
     public commitSummary: CommitSummary;
+    public hookId: number;
 }

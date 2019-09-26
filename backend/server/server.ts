@@ -8,9 +8,6 @@ import {ConfigurationManager} from './util/ConfigurationManager';
 import {Logger} from './util/Logger';
 
 export class Server {
-    private app: express.Application;
-    private server: http.Server;
-    private io: SocketIO.Server;
 
     constructor(private appFactory: express.Express,
                 private configurationManager: ConfigurationManager,
@@ -20,6 +17,10 @@ export class Server {
         this.sockets();
         this.routerSetup();
     }
+    private app: express.Application;
+    private server: http.Server;
+    private io: SocketIO.Server;
+    private scmController: SCMController;
 
     private createApp(): void {
         this.app = this.appFactory();
@@ -53,8 +54,14 @@ export class Server {
 
         new ConfigurationController(this.io, this.configurationManager).register();
         IndexController.register(this.app);
-        new SCMController(this.io, this.configurationManager).register(this.app);
+
+        this.scmController = new SCMController(this.io, this.configurationManager);
+        await this.scmController.register(this.app);
 
         this.app.use('/', router);
+    }
+
+    public exit() {
+        this.scmController.cleanup();
     }
 }

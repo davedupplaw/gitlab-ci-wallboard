@@ -11,6 +11,7 @@ import {ConfigurationManager} from '../util/ConfigurationManager';
 import {Status, StatusType} from '../../../shared/domain/Status';
 import CommitSummary from '../../../shared/domain/CommitSummary';
 import {Logger} from '../util/Logger';
+import ProjectCache from "../util/ProjectCache";
 
 export class SCMController {
     private connectedSockets: Map<string, Socket> = new Map<string, Socket>();
@@ -61,7 +62,18 @@ export class SCMController {
 
         const projects: void | Project[] = await this.scmClient.getProjects();
         if (projects) {
-            projects.forEach(project => ProjectCacheFactory.getCache().update(project));
+            await Promise.all(projects.map(async project => {
+                ProjectCacheFactory.getCache().update(project);
+                this.emit('projects', ProjectCacheFactory.getCache().getProjects());
+
+                const existingHookId = await this.scmClient.hasProjectHook(project.id);
+                if (!existingHookId) {
+                    project.hookId = await this.scmClient.addProjectHook(project.id);
+                    this.logger.log(`Added project hook for ${project.name}`);
+                } else {
+                    project.hookId = existingHookId as number;
+                }
+            }));
         }
     }
 
@@ -113,5 +125,14 @@ export class SCMController {
         }));
         await updateCommits();
         this.emit('status', new Status(StatusType.SUCCESS, 'Commits up to date.'));
+    }
+
+    public async cleanup() {
+        await Promise.all(ProjectCacheFactory.getCache().getProjects().map( async project => {
+            await this.scmClient.removeProjectHook(project.id, project.hookId);
+            this.logger.log(`Removed project hook for ${project.name}`);
+        }));
+
+        this.scmClient.cleanup();
     }
 }

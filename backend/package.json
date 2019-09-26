@@ -50,5 +50,8 @@
     "type": "git",
     "url": ""
   },
-  "dependencies": {}
+  "dependencies": {
+    "async-exit-hook": "^2.0.1",
+    "exit-hook": "^2.2.0"
+  }
 }
