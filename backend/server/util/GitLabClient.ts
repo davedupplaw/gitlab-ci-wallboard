@@ -7,11 +7,13 @@ import CommitSummary from '../../../shared/domain/CommitSummary';
 import Build, {Status} from '../../../shared/domain/Build';
 import Commit from '../../../shared/domain/Commit';
 import {ConfigurationManager} from './ConfigurationManager';
+import {Logger} from './Logger';
 
 export class GitLabClient implements SCMClient {
     private axios: AxiosInstance;
 
-    constructor(private configuration: ConfigurationManager) {
+    constructor(private configuration: ConfigurationManager,
+                private logger: Logger = new Logger()) {
         this.checkConfiguration();
         this.createAxiosClient();
     }
@@ -26,7 +28,7 @@ export class GitLabClient implements SCMClient {
 
         if (max.status >= 300) {
             const message = 'Got response ' + max.status + ' from project ' + max.data.name;
-            console.log('Max status: ', message);
+            new Logger().log('Max status: ', message);
             throw new Error(message);
         }
     }
@@ -70,13 +72,13 @@ export class GitLabClient implements SCMClient {
         const groups = this.configuration.getConfiguration().scm.gitlab.whitelist.groups;
         const users = this.configuration.getConfiguration().scm.gitlab.whitelist.users;
 
-        console.log('Getting URLS for:');
-        console.log(`  - projects: ${projects}`);
-        console.log(`  - groups  : ${groups}`);
-        console.log(`  - users   : ${users}`);
+        this.logger.log('Getting URLS for:');
+        this.logger.log(`  - projects: ${projects}`);
+        this.logger.log(`  - groups  : ${groups}`);
+        this.logger.log(`  - users   : ${users}`);
 
         const urls = this.getUrls(users, groups, projects);
-        console.log(urls);
+        this.logger.log(urls);
 
         const projectInfosList = await Promise.all(urls.map(projectListUrl => this.getProjectList(projectListUrl)));
         return projectInfosList.flatMap(v => v);
@@ -194,7 +196,7 @@ export class GitLabClient implements SCMClient {
 
     public augmentApi(app: express.Application, io: SocketIO.Server): void {
         app.use('/gitlab/hooks/{id}', (req, res) => {
-            console.log('Received push for ', req.params.id);
+            this.logger.log('Received push for ', req.params.id);
         });
     }
 }

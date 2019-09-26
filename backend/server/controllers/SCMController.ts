@@ -77,7 +77,8 @@ export class SCMController {
         const update = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map(async project => {
             const random = this.configurationManager.getConfiguration().scm.pollingConfiguration.randomiseTime;
             const period = this.configurationManager.getConfiguration().scm.pollingConfiguration.buildUpdatePeriod;
-            const randomTime = Math.random() * period;
+            const randomTimePortion = this.configurationManager.getConfiguration().scm.pollingConfiguration.randomTimePortion;
+            const randomTime = Math.random() * period * randomTimePortion;
             await this.delay(random ? randomTime : 0, null).then(async () => {
                 const latestBuild: void | Build = await this.scmClient.getLatestBuild(project.id);
                 if (latestBuild) {
@@ -98,7 +99,8 @@ export class SCMController {
         const updateCommits = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map(async project => {
             const random = this.configurationManager.getConfiguration().scm.pollingConfiguration.randomiseTime;
             const period = this.configurationManager.getConfiguration().scm.pollingConfiguration.commitSummaryUpdatePeriod;
-            const randomTime = Math.random() * period;
+            const randomTimePortion = this.configurationManager.getConfiguration().scm.pollingConfiguration.randomTimePortion;
+            const randomTime = Math.random() * period * randomTimePortion;
             await this.delay(random ? randomTime : 0, null).then(async () => {
                 if (project.id) {
                     const commitSummary: void | CommitSummary = await this.scmClient.compileCommitSummaryForProject(project.id);

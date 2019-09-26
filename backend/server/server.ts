@@ -5,6 +5,7 @@ import IndexController from './controllers/IndexController';
 import ConfigurationController from './controllers/ConfigurationController';
 import {SCMController} from './controllers/SCMController';
 import {ConfigurationManager} from './util/ConfigurationManager';
+import {Logger} from './util/Logger';
 
 export class Server {
     private app: express.Application;
@@ -12,7 +13,8 @@ export class Server {
     private io: SocketIO.Server;
 
     constructor(private appFactory: express.Express,
-                private configurationManager: ConfigurationManager) {
+                private configurationManager: ConfigurationManager,
+                private logger: Logger = new Logger()) {
         this.createApp();
         this.createServer();
         this.sockets();
@@ -34,13 +36,13 @@ export class Server {
     public listen(): void {
         const port = this.configurationManager.getConfiguration().port;
         this.server.listen(port, () => {
-            console.log('Running server on port %s', port);
+            this.logger.log('Running server on port %s', port);
         });
 
         this.io.on('connect', (socket: any) => {
-            console.log('Connected client on port %s.', socket.id);
+            this.logger.log('Connected client on port %s.', socket.id);
             socket.on('disconnect', () => {
-                console.log('Client disconnected from ', socket.id);
+                this.logger.log('Client disconnected from ', socket.id);
             });
         });
 

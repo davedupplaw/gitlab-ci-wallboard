@@ -2,11 +2,12 @@ import * as fs from 'fs';
 import {Configuration, FrontEndConfiguration, SCMConfig} from '../../../shared/domain/config/Configuration';
 import {GitLabConfiguration} from '../../../shared/domain/config/GitLabConfiguration';
 import {StringUtils} from './StringUtils';
+import {Logger} from './Logger';
 
 export class ConfigurationManager {
     private readonly config: Configuration;
 
-    constructor() {
+    constructor(private logger: Logger = new Logger()) {
         const configName = process.env.profile || 'config';
         this.config = JSON.parse(fs.readFileSync(`config/${configName}.json`, 'utf-8'));
 
@@ -15,8 +16,8 @@ export class ConfigurationManager {
         ConfigurationManager.updateSCMConfigurationFromEnvironment(this.config.scm);
         ConfigurationManager.updateGitlabConfigurationFromEnvironment(this.config.scm.gitlab);
 
-        console.log('Using the following configuration:');
-        console.log(this.config);
+        this.logger.log('Using the following configuration:');
+        this.logger.log(this.config);
     }
 
     private static updateConfigurationFromEnvironment(config: Configuration): Configuration {
