@@ -10,7 +10,8 @@
     "pollingConfiguration": {
       "projectUpdatePeriod": 300000,
       "commitSummaryUpdatePeriod": 120000,
-      "buildUpdatePeriod": 20000
+      "buildUpdatePeriod": 20000,
+      "randomiseTime": true
     },
     "gitlab": {
       "host": "gitlab.com",

@@ -39,9 +39,11 @@ export class SCMController {
                 clearInterval(commitTimer);
             });
         });
+
+        this.scmClient.augmentApi(app, this.io);
     }
 
-    private async updateProjects(socket: Socket): Promise<void | Project[]>  {
+    private async updateProjects(socket: Socket): Promise<void | Project[]> {
         socket.emit('status', new Status(StatusType.PENDING, 'Updating projects...'));
         const projects: void | Project[] = await this.scmClient.getProjects();
         if (projects) {
@@ -50,31 +52,49 @@ export class SCMController {
         }
     }
 
+    private delay(timeout, v) {
+        return new Promise(function (resolve) {
+            setTimeout(resolve.bind(null, v), timeout);
+        });
+    }
+
     private async updatePipelines(socket: Socket): Promise<void> {
         socket.emit('status', new Status(StatusType.PENDING, 'Getting latest build status...'));
-        const update = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map( async project => {
-            const latestBuild: void | Build = await this.scmClient.getLatestBuild(project.id);
-            if ( latestBuild ) {
-                project.lastBuild = latestBuild;
-            }
+        const update = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map(async project => {
+            const random = this.configurationManager.getConfiguration().scm.pollingConfiguration.randomiseTime;
+            const period = this.configurationManager.getConfiguration().scm.pollingConfiguration.buildUpdatePeriod;
+            const randomTime = Math.random() * period;
+            await this.delay(random ? 1 : 0, null).then(async () => {
+                const latestBuild: void | Build = await this.scmClient.getLatestBuild(project.id);
+                if (latestBuild) {
+                    project.lastBuild = latestBuild;
+                    socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
+                }
+            });
         }));
         await update();
 
-        socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
         socket.emit('status', new Status(StatusType.PENDING, 'Builds up to date'));
     }
 
     private async updateCommits(socket: Socket): Promise<void> {
         socket.emit('status', new Status(StatusType.PENDING, 'Retrieving commit summary...'));
 
-        const updateCommits = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map( async project => {
-            const commitSummary: void | CommitSummary = await this.scmClient.compileCommitSummaryForProject(project.id);
-            if (commitSummary) {
-                project.commitSummary = commitSummary;
-            }
+        const updateCommits = async () => Promise.all(ProjectCacheFactory.getCache().getProjects().map(async project => {
+            const random = this.configurationManager.getConfiguration().scm.pollingConfiguration.randomiseTime;
+            const period = this.configurationManager.getConfiguration().scm.pollingConfiguration.commitSummaryUpdatePeriod;
+            const randomTime = Math.random() * period;
+            await this.delay(random ? 1 : 0, null).then(async () => {
+                if (project.id) {
+                    const commitSummary: void | CommitSummary = await this.scmClient.compileCommitSummaryForProject(project.id);
+                    if (commitSummary) {
+                        project.commitSummary = commitSummary;
+                        socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
+                    }
+                }
+            });
         }));
         await updateCommits();
-        socket.emit('projects', ProjectCacheFactory.getCache().getProjects());
         socket.emit('status', new Status(StatusType.SUCCESS, 'Commits up to date.'));
     }
 }

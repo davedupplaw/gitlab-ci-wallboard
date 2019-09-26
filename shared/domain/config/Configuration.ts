@@ -15,6 +15,7 @@ export class PollingConfiguration {
     public projectUpdatePeriod: number;
     public buildUpdatePeriod: number;
     public commitSummaryUpdatePeriod: number;
+    public randomiseTime: boolean;
 }
 
 export class Configuration {

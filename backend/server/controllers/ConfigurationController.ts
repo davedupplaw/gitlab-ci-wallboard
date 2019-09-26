@@ -8,7 +8,7 @@ export default class ConfigurationController {
 
     public register() {
         this.io.on('connection', (socket: Socket) => {
-            const config =this.configurationManager.getConfiguration().frontend;
+            const config = this.configurationManager.getConfiguration().frontend;
             console.log('Emitting config:', config);
             socket.emit('config', config);
         });

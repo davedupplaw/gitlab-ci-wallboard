@@ -1,3 +1,5 @@
+import * as express from 'express';
+import * as SocketIO from 'socket.io';
 import Axios, {AxiosInstance, AxiosResponse} from 'axios';
 import {SCMClient} from './SCMClient';
 import Project from '../../../shared/domain/Project';
@@ -112,7 +114,7 @@ export class GitLabClient implements SCMClient {
 
     private async getPipelineStatus(projectId: string, pipelineId: string): Promise<void | Build> {
         const url = `/projects/${projectId}/pipelines/${pipelineId}`;
-        const response = await this.axios.get(url)
+        const response = await this.axios.get(url);
 
         const build = new Build();
         build.status = GitLabClient.gitLabStatusToStatus(response.data.status);
@@ -188,5 +190,11 @@ export class GitLabClient implements SCMClient {
     public async removeProjectHook(projectId: number): Promise<void> {
         const url = `/projects/${projectId}/hooks`;
         await this.axios.delete(url);
+    }
+
+    public augmentApi(app: express.Application, io: SocketIO.Server): void {
+        app.use('/gitlab/hooks/{id}', (req, res) => {
+            console.log('Received push for ', req.params.id);
+        });
     }
 }
