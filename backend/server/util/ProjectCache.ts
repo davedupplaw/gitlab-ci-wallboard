@@ -13,7 +13,11 @@ export default class ProjectCache {
 
     public update(project: Project) {
         if (project && project.id) {
-            this._cache[project.id] = project;
+            if (this._cache[project.id]) {
+                this._cache[project.id] = { ...this._cache[project.id], ...project };
+            } else {
+                this._cache[project.id] = project;
+            }
         } else {
             console.warn('ProjectCache: Ignored project: ', project);
         }
