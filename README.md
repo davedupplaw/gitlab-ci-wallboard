@@ -42,7 +42,7 @@ docker run -d -p 3000:3000 \
            davedupplaw/gitlab-ci-wallboard
 ```
 
-See the docker hub page here: https://cloud.docker.com/repository/docker/davedupplaw/gitlab-ci-wallboard
+See the docker hub page here: https://hub.docker.com/r/davedupplaw/gitlab-ci-wallboard
 
 ### Configuration
 
