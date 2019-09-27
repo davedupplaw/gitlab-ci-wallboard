@@ -3,6 +3,7 @@ import {GitLabConfiguration} from './GitLabConfiguration';
 export class FrontEndConfiguration {
     public showProjectsWithoutBuilds: boolean;
     public showSemanticsCard: boolean;
+    public baseUrl: string;
 }
 
 export class SCMConfig {

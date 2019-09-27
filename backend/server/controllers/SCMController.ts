@@ -11,10 +11,13 @@ import {ConfigurationManager} from '../util/ConfigurationManager';
 import {Status, StatusType} from '../../../shared/domain/Status';
 import CommitSummary from '../../../shared/domain/CommitSummary';
 import {Logger} from '../util/Logger';
-import ProjectCache from "../util/ProjectCache";
 
 export class SCMController {
     private connectedSockets: Map<string, Socket> = new Map<string, Socket>();
+
+    private projectTimer: NodeJS.Timeout;
+    private pipelineTimer: NodeJS.Timeout;
+    private commitTimer: NodeJS.Timeout;
 
     constructor(private io: SocketIO.Server,
                 private configurationManager: ConfigurationManager,
@@ -30,22 +33,19 @@ export class SCMController {
 
             socket.on('disconnect', () => {
                 this.logger.log('User disconnected: ', socket.id);
-                clearInterval(projectTimer);
-                clearInterval(pipelineTimer);
-                clearInterval(commitTimer);
                 this.connectedSockets.delete(socket.id);
             });
         });
 
-        const projectTimer = setInterval(() => this.updateProjects(),
+        this.projectTimer = setInterval(() => this.updateProjects(),
             this.configurationManager.getConfiguration().scm.pollingConfiguration.projectUpdatePeriod);
         await this.updateProjects();
 
-        const pipelineTimer = setInterval(() => this.updatePipelines(),
+        this.pipelineTimer = setInterval(() => this.updatePipelines(),
             this.configurationManager.getConfiguration().scm.pollingConfiguration.buildUpdatePeriod);
         await this.updatePipelines();
 
-        const commitTimer = setInterval(() => this.updateCommits(),
+        this.commitTimer = setInterval(() => this.updateCommits(),
             this.configurationManager.getConfiguration().scm.pollingConfiguration.commitSummaryUpdatePeriod);
         await this.updateCommits();
 
@@ -128,6 +128,10 @@ export class SCMController {
     }
 
     public async cleanup() {
+        clearInterval(this.projectTimer);
+        clearInterval(this.pipelineTimer);
+        clearInterval(this.commitTimer);
+
         await Promise.all(ProjectCacheFactory.getCache().getProjects().map( async project => {
             await this.scmClient.removeProjectHook(project.id, project.hookId);
             this.logger.log(`Removed project hook for ${project.name}`);

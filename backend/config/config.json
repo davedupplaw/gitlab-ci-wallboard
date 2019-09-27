@@ -3,7 +3,8 @@
   "wallboardUrl": "http://localhost",
   "frontend": {
     "showProjectsWithoutBuilds": false,
-    "showSemanticsCard": true
+    "showSemanticsCard": true,
+    "baseUrl": "http://localhost"
   },
   "scm": {
     "usePolling": true,

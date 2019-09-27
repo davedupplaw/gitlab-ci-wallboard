@@ -29,6 +29,7 @@ export class ConfigurationManager {
     private static updateFrontendConfigurationFromEnvironment(config: FrontEndConfiguration): FrontEndConfiguration {
         config.showProjectsWithoutBuilds = StringUtils.tf(process.env.GCIWB_INCLUDE_NO_BUILDS, config.showProjectsWithoutBuilds);
         config.showSemanticsCard = StringUtils.tf(process.env.GCIWB_SHOW_SEMANTICS, config.showSemanticsCard);
+        config.baseUrl = process.env.GCIWB_WALLBOARD_URL || config.baseUrl;
         return config;
     }
 
