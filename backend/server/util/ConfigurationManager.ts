@@ -38,6 +38,8 @@ export class ConfigurationManager {
             process.env.GCIWB_BUILD_UPDATE_PERIOD, config.pollingConfiguration.buildUpdatePeriod);
         config.pollingConfiguration.projectUpdatePeriod = StringUtils.parseInteger(
             process.env.GCIWB_PROJECT_UPDATE_PERIOD, config.pollingConfiguration.projectUpdatePeriod);
+        config.usePolling = StringUtils.tf(process.env.GCIWB_USE_POLLING, config.usePolling);
+        config.useWebHooks = StringUtils.tf(process.env.GCIWB_USE_WEBHOOKS, config.useWebHooks);
     }
 
     private static updateGitlabConfigurationFromEnvironment(gitlab: GitLabConfiguration): GitLabConfiguration {

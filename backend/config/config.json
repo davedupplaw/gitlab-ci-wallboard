@@ -15,6 +15,7 @@
       "randomiseTime": true,
       "randomTimePortion": 0.5
     },
+    "useWebHooks": true,
     "gitlab": {
       "host": "gitlab.com",
       "token": null,

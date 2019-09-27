@@ -196,9 +196,11 @@ export class GitLabClient implements SCMClient {
     }
 
     public augmentApi(app: express.Application, io: SocketIO.Server): void {
-        app.use('/gitlab/hooks/{id}', (req, res) => {
-            this.logger.log('Received push for ', req.params.id);
-        });
+        if (this.configuration.getConfiguration().scm.useWebHooks) {
+            app.use('/gitlab/hooks/{id}', (req, res) => {
+                this.logger.log('Received push for ', req.params.id);
+            });
+        }
     }
 
     cleanup(): void {

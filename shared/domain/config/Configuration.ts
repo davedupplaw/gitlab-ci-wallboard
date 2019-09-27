@@ -8,6 +8,7 @@ export class FrontEndConfiguration {
 
 export class SCMConfig {
     public usePolling: boolean;
+    public useWebHooks: boolean;
     public pollingConfiguration: PollingConfiguration;
     public gitlab?: GitLabConfiguration;
 }

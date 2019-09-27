@@ -66,12 +66,14 @@ export class SCMController {
                 ProjectCacheFactory.getCache().update(project);
                 this.emit('projects', ProjectCacheFactory.getCache().getProjects());
 
-                const existingHookId = await this.scmClient.hasProjectHook(project.id);
-                if (!existingHookId) {
-                    project.hookId = await this.scmClient.addProjectHook(project.id);
-                    this.logger.log(`Added project hook for ${project.name}`);
-                } else {
-                    project.hookId = existingHookId as number;
+                if (this.configurationManager.getConfiguration().scm.useWebHooks) {
+                    const existingHookId = await this.scmClient.hasProjectHook(project.id);
+                    if (!existingHookId) {
+                        project.hookId = await this.scmClient.addProjectHook(project.id);
+                        this.logger.log(`Added project hook for ${project.name}`);
+                    } else {
+                        project.hookId = existingHookId as number;
+                    }
                 }
             }));
         }

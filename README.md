@@ -59,6 +59,8 @@ Here are the configuration options that can be passed in the environment:
 | GCIWB_PROJECTS | The list of projects to use (csv) | |
 | GCIWB_INCLUDE_NO_BUILDS | Whether to include projects without a build | false |
 | GCIWB_SHOW_SEMANTICS | Whether to show the semantic commit summary card | true |
+| GCIWB_USE_POLLING | Whether to use polling to get project information | true |
+| GCIWB_USE_WEBHOOKS | Whether to add project hooks | true |
 | GCIWB_PROJECT_UPDATE_PERIOD | How often to update projects when polling (milliseconds) | 120000 |
 | GCIWB_BUILD_UPDATE_PERIOD | How often to update builds when polling (milliseconds) | 10000 |
 
